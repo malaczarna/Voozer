@@ -5,6 +5,9 @@ import org.springframework.stereotype.Component;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.UserMessage;
 import pl.jarosyjarosy.yougetin.user.model.User;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 @Component
 public class UserMapperService {
     private PasswordService passwordService;
@@ -14,7 +17,7 @@ public class UserMapperService {
         this.passwordService = passwordService;
     }
 
-    public User mapUserMessage(UserMessage userMessage) {
+    public User mapUserMessage(UserMessage userMessage) throws InvalidKeySpecException, NoSuchAlgorithmException {
         User user = new User();
         user.setId(userMessage.getId());
         user.setPassword(passwordService.getPasswordHash(userMessage.getPassword()));
