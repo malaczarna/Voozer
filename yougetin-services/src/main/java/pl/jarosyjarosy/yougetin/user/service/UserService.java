@@ -40,7 +40,7 @@ public class UserService {
 
         user.setCreateDate(Date.from(Instant.now()));
         user.setActive(true);
-        user.setBlocked(true);
+        user.setBlocked(false);
 
         return userRepository.save(user);
     }
