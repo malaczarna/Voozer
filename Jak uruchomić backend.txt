@@ -1,7 +1,7 @@
 Jak uruchomiæ backend?
 
-Do zainstalowania:
-- Java 8
-- MySQL 8
+Do œci¹gniêcia:
+- Java 8 - ustawiæ zmienn¹ œrodowiskow¹ JAVA_HOME
+- MySQL 8 - najlepiej przy instalacji ustawiæ has³o na test123
 
 œci¹gamy projekt i w folderze yougetin-services odpalamy komende: ./gradlew bootrun
