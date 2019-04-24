@@ -1,0 +1,7 @@
+Jak uruchomiæ backend?
+
+Do zainstalowania:
+- Java 8
+- MySQL 8
+
+œci¹gamy projekt i w folderze yougetin-services odpalamy komende: ./gradlew bootrun
