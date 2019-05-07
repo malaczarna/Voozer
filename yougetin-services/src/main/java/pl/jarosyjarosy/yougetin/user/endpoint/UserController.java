@@ -44,7 +44,8 @@ public class UserController {
     public UserMessage save(@RequestBody UserMessage user) throws InvalidKeySpecException, NoSuchAlgorithmException {
 
         User newUser = userService.validateAndCreate(
-                userMapperService.mapUserMessage(user)
+                userMapperService.mapUserMessage(user),
+                userMapperService.mapRoles(user)
         );
 
         return userMapperService.mapUser(newUser);

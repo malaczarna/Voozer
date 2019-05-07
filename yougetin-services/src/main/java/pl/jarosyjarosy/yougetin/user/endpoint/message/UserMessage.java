@@ -3,6 +3,7 @@ package pl.jarosyjarosy.yougetin.user.endpoint.message;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Date;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class UserMessage {
@@ -12,6 +13,8 @@ public class UserMessage {
     private String email;
     private String password;
     private Date createDate;
+
+    private List<RoleMessage> roles;
 
     public Long getId() {
         return id;
@@ -47,6 +50,18 @@ public class UserMessage {
 
     public Date getCreateDate() {
         return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public List<RoleMessage> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<RoleMessage> roles) {
+        this.roles = roles;
     }
 }
 

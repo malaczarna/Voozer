@@ -3,6 +3,8 @@ package pl.jarosyjarosy.yougetin.user.model;
 import com.google.common.base.Objects;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Entity
@@ -12,7 +14,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @NotBlank(message = "Uzupełnij pole Imię")
     private String name;
+    @NotBlank(message = "Uzupełnij pole Email")
+    @Email(message = "Nieprawidłowy format pola Email")
     private String email;
     private String password;
 
