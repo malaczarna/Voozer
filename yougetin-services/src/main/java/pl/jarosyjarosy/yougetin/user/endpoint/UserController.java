@@ -1,15 +1,16 @@
 package pl.jarosyjarosy.yougetin.user.endpoint;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import pl.jarosyjarosy.yougetin.auth.model.Identity;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.UserMessage;
+import pl.jarosyjarosy.yougetin.user.model.User;
 import pl.jarosyjarosy.yougetin.user.service.UserMapperService;
 import pl.jarosyjarosy.yougetin.user.service.UserService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 @RestController
 @RequestMapping("/users")
@@ -33,4 +34,21 @@ public class UserController {
 
         return userMapperService.mapUser(userService.get(id));
     }
+
+    @RequestMapping(
+            value = "/register-command",
+            method = RequestMethod.POST,
+            consumes = "application/json",
+            produces = "application/json"
+    )
+    public UserMessage save(@RequestBody UserMessage user) throws InvalidKeySpecException, NoSuchAlgorithmException {
+
+        User newUser = userService.validateAndCreate(
+                userMapperService.mapUserMessage(user),
+                userMapperService.mapRoles(user)
+        );
+
+        return userMapperService.mapUser(newUser);
+    }
+
 }
