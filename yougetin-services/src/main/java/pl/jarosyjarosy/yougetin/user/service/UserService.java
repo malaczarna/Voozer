@@ -1,7 +1,5 @@
 package pl.jarosyjarosy.yougetin.user.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
@@ -17,7 +15,6 @@ import java.util.List;
 
 @Component
 public class UserService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     private UserRepository userRepository;
     private UserValidationService userValidationService;
@@ -33,7 +30,6 @@ public class UserService {
     }
 
     public User get(Long id) {
-        LOGGER.info("get user {}", id);
 
         if(userRepository.findById(id).isPresent()) {
             return userRepository.findById(id).get();
@@ -44,7 +40,6 @@ public class UserService {
 
     @Transactional
     public User validateAndCreate(User user, List<Role> roles) {
-        LOGGER.info("validateAndCreate user {}", user);
 
         userValidationService.assureUserWithUniqueEmail(user);
         //userValidationService.assureAtLeastOneRoleIsDefined(roles);
