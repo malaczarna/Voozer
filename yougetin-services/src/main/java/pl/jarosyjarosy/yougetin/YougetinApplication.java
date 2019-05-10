@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
 import java.util.TimeZone;
 
 @SpringBootApplication
-@ComponentScan("pl.jarosyjarosy")
+@ComponentScan(basePackages = "pl.jarosyjarosy")
 public class YougetinApplication extends SpringBootServletInitializer {
 
 	@Override
