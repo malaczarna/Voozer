@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Voozer</string>
+    <string name="navigation_drawer_open">Otwórz menu</string>
+    <string name="navigation_drawer_close">Zamknij menu</string>
+    <string name="action_settings">Ustawienia</string>
+
+    <string name="menu_rides">Twoje podwózki</string>
+    <string name="menu_preferences">Twoje preferencje</string>
+    <string name="menu_help">Pomoc</string>
+    <string name="menu_settings">Ustawienia</string>
+    <string name="menu_other">Inne</string>
+    <string name="menu_regulations">Regulamin</string>
+</resources>
