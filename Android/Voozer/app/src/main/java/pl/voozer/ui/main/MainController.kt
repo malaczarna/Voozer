@@ -12,12 +12,10 @@ class MainController : BaseController<MainView>() {
     @SuppressLint("CheckResult")
     fun loadPosition() {
         api.getPosition()
-            .observeOn(Schedulers.io())
-            .subscribeOn(AndroidSchedulers.mainThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe(
-                { position ->
-                    view.updatePosition(position = position)
-                },
+                { position -> view.updatePosition(position = position) },
                 { error: Throwable ->
                     Log.d("Error", error.localizedMessage)
                 }
@@ -27,8 +25,8 @@ class MainController : BaseController<MainView>() {
     @SuppressLint("CheckResult")
     fun sendPosition(position: Position) {
         api.setPosition(position = position)
-            .observeOn(Schedulers.io())
-            .subscribeOn(AndroidSchedulers.mainThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe(
                 {},
                 { error: Throwable ->
@@ -40,10 +38,10 @@ class MainController : BaseController<MainView>() {
     @SuppressLint("CheckResult")
     fun loadUser() {
         api.getUser()
-            .observeOn(Schedulers.io())
-            .subscribeOn(AndroidSchedulers.mainThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe(
-                {user -> view.updateUser(user)},
+                { user -> view.updateUser(user) },
                 { error: Throwable ->
                     Log.d("Error", error.localizedMessage)
                 }
@@ -53,10 +51,10 @@ class MainController : BaseController<MainView>() {
     @SuppressLint("CheckResult")
     fun changeProfile() {
         api.setProfile()
-            .observeOn(Schedulers.io())
-            .subscribeOn(AndroidSchedulers.mainThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe(
-                {view.reloadUser()},
+                { view.reloadUser() },
                 { error: Throwable ->
                     Log.d("Error", error.localizedMessage)
                 }

@@ -9,7 +9,10 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.util.Log
 import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
@@ -38,6 +41,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
     private lateinit var user: User
+    private lateinit var toolbar: Toolbar
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
@@ -66,9 +70,11 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     override fun updateUser(user: User) {
         this.user = user
         if (user.profile == Profile.PASSENGER) {
-            fabChangeProfile.setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_steering_wheel))
+            toolbar.findViewById<ImageView>(R.id.ivProfile).setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_walking))
+            toolbar.findViewById<TextView>(R.id.tvProfile).text = getString(R.string.menu_passenger)
         } else {
-            fabChangeProfile.setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_walking))
+            toolbar.findViewById<ImageView>(R.id.ivProfile).setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_steering_wheel))
+            toolbar.findViewById<TextView>(R.id.tvProfile).text = getString(R.string.menu_driver)
         }
     }
 
@@ -111,8 +117,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
@@ -144,7 +149,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             }
         }
 
-        fabChangeProfile.setOnClickListener {
+        toolbar.findViewById<ImageView>(R.id.ivProfile).setOnClickListener {
             controller.changeProfile()
         }
     }

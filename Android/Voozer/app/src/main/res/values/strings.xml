@@ -10,4 +10,6 @@
     <string name="menu_settings">Ustawienia</string>
     <string name="menu_other">Inne</string>
     <string name="menu_regulations">Regulamin</string>
+    <string name="menu_driver">Kierowca</string>
+    <string name="menu_passenger">Pasażer</string>
 </resources>
