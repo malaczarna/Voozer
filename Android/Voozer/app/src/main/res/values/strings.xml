@@ -4,6 +4,11 @@
     <string name="navigation_drawer_close">Zamknij menu</string>
     <string name="action_settings">Ustawienia</string>
 
+    <string name="popup_title">Czy chcesz zmienić profil?</string>
+
+    <string name="confirm">Tak</string>
+    <string name="cancel">Nie</string>
+
     <string name="menu_rides">Twoje podwózki</string>
     <string name="menu_preferences">Twoje preferencje</string>
     <string name="menu_help">Pomoc</string>

@@ -22,23 +22,23 @@
 
             <ImageView
                     android:id="@+id/ivProfile"
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
+                    android:layout_width="41dp"
+                    android:layout_height="41dp"
+                    android:padding="8dp"
                     android:clickable="true"
                     android:focusable="true"
                     android:tint="@android:color/white"
                     android:layout_gravity="end"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginEnd="8dp"
                     android:foreground="?android:attr/selectableItemBackground"/>
 
             <TextView
                     android:id="@+id/tvProfile"
                     android:layout_width="200dp"
-                    android:layout_height="25dp"
+                    android:layout_height="41dp"
                     android:gravity="end|center"
                     android:layout_gravity="end"
-                    android:textColor="@android:color/white"
-                    android:layout_marginEnd="8dp"/>
+                    android:textColor="@android:color/white"/>
 
 
         </androidx.appcompat.widget.Toolbar>

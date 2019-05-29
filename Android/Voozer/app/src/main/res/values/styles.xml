@@ -2,18 +2,23 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-    </style>
-
-    <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textColorHint">#ffff</item>
+        <item name="colorControlNormal">#ffff</item>
+        <item name="colorControlActivated">#ffff</item>
+        <item name="colorControlHighlight">#ffff</item>
+    </style>
+
+    <style name="AppThemeDriver" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimaryDriver</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkDriver</item>
+        <item name="colorAccent">@color/colorAccentDriver</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
         <item name="android:textColorHint">#ffff</item>
         <item name="colorControlNormal">#ffff</item>
         <item name="colorControlActivated">#ffff</item>

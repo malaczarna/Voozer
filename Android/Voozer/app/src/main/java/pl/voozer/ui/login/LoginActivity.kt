@@ -6,16 +6,31 @@ import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_login.*
 import pl.voozer.R
 import pl.voozer.service.model.Login
+import pl.voozer.service.model.Profile
+import pl.voozer.service.model.User
 import pl.voozer.service.network.Connection
 import pl.voozer.ui.base.BaseActivity
 import pl.voozer.ui.main.MainActivity
 import pl.voozer.ui.register.RegisterActivity
+import pl.voozer.utils.SharedPreferencesHelper
 
 class LoginActivity : BaseActivity<LoginController, LoginView>(), LoginView {
 
-    override fun login() {
+    override fun updateUser(user: User) {
+        when(user.profile) {
+            Profile.PASSENGER -> {
+                SharedPreferencesHelper.setMainTheme(applicationContext, true)
+            }
+            Profile.DRIVER -> {
+                SharedPreferencesHelper.setMainTheme(applicationContext, false)
+            }
+        }
         startActivity(Intent(this, MainActivity::class.java))
         finish()
+    }
+
+    override fun login() {
+        controller.loadUser()
     }
 
     override fun initController() {

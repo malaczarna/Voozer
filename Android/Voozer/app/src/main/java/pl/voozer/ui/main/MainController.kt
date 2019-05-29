@@ -54,7 +54,7 @@ class MainController : BaseController<MainView>() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(
-                { view.reloadUser() },
+                {},
                 { error: Throwable ->
                     Log.d("Error", error.localizedMessage)
                 }

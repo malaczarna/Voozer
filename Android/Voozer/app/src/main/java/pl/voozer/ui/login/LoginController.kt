@@ -39,4 +39,17 @@ class LoginController : BaseController<LoginView>() {
                 }
             )
     }
+
+    @SuppressLint("CheckResult")
+    fun loadUser() {
+        api.getUser()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                { user -> view.updateUser(user) },
+                { error: Throwable ->
+                    Log.d("Error", error.localizedMessage)
+                }
+            )
+    }
 }

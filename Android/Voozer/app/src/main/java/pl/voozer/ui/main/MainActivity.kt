@@ -5,19 +5,24 @@ import com.tbruyelle.rxpermissions2.RxPermissions
 import pl.voozer.R
 import pl.voozer.ui.base.BaseActivity
 import android.Manifest.permission
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.location.Location
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -33,8 +38,10 @@ import pl.voozer.service.model.Position
 import pl.voozer.service.model.Profile
 import pl.voozer.service.model.User
 import pl.voozer.service.network.Connection
+import pl.voozer.utils.SharedPreferencesHelper
 
-class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
+class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapReadyCallback,
+    GoogleMap.OnMarkerClickListener,
     NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var googleMap: GoogleMap
@@ -42,13 +49,21 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private lateinit var lastLocation: Location
     private lateinit var user: User
     private lateinit var toolbar: Toolbar
+    private lateinit var navView: NavigationView
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
         googleMap.uiSettings.isMyLocationButtonEnabled = false
         googleMap.setOnMarkerClickListener(this)
-        if (ContextCompat.checkSelfPermission(applicationContext, permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-            || ContextCompat.checkSelfPermission(applicationContext, permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                applicationContext,
+                permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(
+                applicationContext,
+                permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
 
             googleMap.isMyLocationEnabled = true
             fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
@@ -69,17 +84,28 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
 
     override fun updateUser(user: User) {
         this.user = user
-        if (user.profile == Profile.PASSENGER) {
-            toolbar.findViewById<ImageView>(R.id.ivProfile).setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_walking))
-            toolbar.findViewById<TextView>(R.id.tvProfile).text = getString(R.string.menu_passenger)
-        } else {
-            toolbar.findViewById<ImageView>(R.id.ivProfile).setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_steering_wheel))
-            toolbar.findViewById<TextView>(R.id.tvProfile).text = getString(R.string.menu_driver)
+        when (user.profile) {
+            Profile.PASSENGER -> {
+                navView.getHeaderView(0).findViewById<LinearLayout>(R.id.llHeaderMain).setBackgroundColor(
+                    ContextCompat.getColor(applicationContext, R.color.colorPrimary
+                    ))
+                fabMyPosition.backgroundTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
+                toolbar.findViewById<ImageView>(R.id.ivProfile)
+                    .setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_walking))
+                toolbar.findViewById<TextView>(R.id.tvProfile).text = getString(R.string.menu_passenger)
+            }
+            Profile.DRIVER -> {
+                navView.getHeaderView(0).findViewById<LinearLayout>(R.id.llHeaderMain).setBackgroundColor(
+                    ContextCompat.getColor(applicationContext, R.color.colorPrimaryDriver
+                    ))
+                fabMyPosition.backgroundTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(applicationContext, R.color.colorPrimaryDriver))
+                toolbar.findViewById<ImageView>(R.id.ivProfile)
+                    .setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_steering_wheel))
+                toolbar.findViewById<TextView>(R.id.tvProfile).text = getString(R.string.menu_driver)
+            }
         }
-    }
-
-    override fun reloadUser() {
-        controller.loadUser()
     }
 
     override fun getLayoutResId(): Int {
@@ -116,11 +142,70 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        when (SharedPreferencesHelper.isMainTheme(applicationContext)) {
+            true -> {
+                setTheme(R.style.AppTheme)
+            }
+            false -> {
+                setTheme(R.style.AppThemeDriver)
+            }
+
+        }
         super.onCreate(savedInstanceState)
+        initLayout()
+        fabMyPosition.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(
+                    applicationContext,
+                    permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(
+                    applicationContext,
+                    permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
+                    if (location != null) {
+                        lastLocation = location
+                        val currentLatLng = LatLng(location.latitude, location.longitude)
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+                    }
+                }
+            }
+        }
+        toolbar.findViewById<ImageView>(R.id.ivProfile).setOnClickListener {
+            MaterialDialog(this).show {
+                customView(R.layout.popup_change_profile, scrollable = true)
+                cancelOnTouchOutside(true)
+                noAutoDismiss()
+                negativeButton(R.string.cancel) {
+                    dismiss()
+                }
+                positiveButton(R.string.confirm) {
+                    dismiss()
+                    controller.changeProfile()
+                    when (SharedPreferencesHelper.isMainTheme(applicationContext)) {
+                        true -> {
+                            SharedPreferencesHelper.setMainTheme(applicationContext, false)
+                            startActivity(Intent(applicationContext, MainActivity::class.java))
+                            finish()
+                        }
+
+                        false -> {
+                            SharedPreferencesHelper.setMainTheme(applicationContext, true)
+                            startActivity(Intent(applicationContext, MainActivity::class.java))
+                            finish()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun initLayout() {
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
-        val navView: NavigationView = findViewById(R.id.nav_view)
+        navView = findViewById(R.id.nav_view)
         val toggle = ActionBarDrawerToggle(
             this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
         )
@@ -135,23 +220,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         controller.loadUser()
-
-        fabMyPosition.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(applicationContext, permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(applicationContext, permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
-                    if (location != null) {
-                        lastLocation = location
-                        val currentLatLng = LatLng(location.latitude, location.longitude)
-                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
-                    }
-                }
-            }
-        }
-
-        toolbar.findViewById<ImageView>(R.id.ivProfile).setOnClickListener {
-            controller.changeProfile()
-        }
     }
 
     private fun placeMarkerOnMap(location: LatLng) {
