@@ -84,6 +84,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
 
     override fun updateUser(user: User) {
         this.user = user
+        tvUsername.text = "${getString(R.string.search_bar_greeting)} ${user.name}!"
         when (user.profile) {
             Profile.PASSENGER -> {
                 navView.getHeaderView(0).findViewById<LinearLayout>(R.id.llHeaderMain).setBackgroundColor(

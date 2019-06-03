@@ -9,6 +9,10 @@
     <string name="confirm">Tak</string>
     <string name="cancel">Nie</string>
 
+    <string name="search_bar_greeting">Witaj</string>
+    <string name="search_bar_title">Dokąd dzisiaj?</string>
+
+
     <string name="menu_rides">Twoje podwózki</string>
     <string name="menu_preferences">Twoje preferencje</string>
     <string name="menu_help">Pomoc</string>
