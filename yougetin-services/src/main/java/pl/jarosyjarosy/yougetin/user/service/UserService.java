@@ -13,7 +13,7 @@ import pl.jarosyjarosy.yougetin.user.repository.RoleRepository;
 import pl.jarosyjarosy.yougetin.user.repository.UserRepository;
 
 import javax.transaction.Transactional;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Date;
 import java.util.List;
 
@@ -24,14 +24,17 @@ public class UserService {
     private UserRepository userRepository;
     private UserValidationService userValidationService;
     private RoleRepository roleRepository;
+    private Clock clock;
 
     @Autowired
     public UserService(UserRepository userRepository,
                        UserValidationService userValidationService,
-                       RoleRepository roleRepository) {
+                       RoleRepository roleRepository,
+                       Clock clock) {
         this.userRepository = userRepository;
         this.userValidationService = userValidationService;
         this.roleRepository = roleRepository;
+        this.clock = clock;
     }
 
     public User get(Long id) {
@@ -51,8 +54,8 @@ public class UserService {
         userValidationService.assureAtLeastOneRoleIsDefined(roles);
         userValidationService.assureRolesAreNotDoubled(roles);
 
-        assureDefaultFieldsAreNotEmpty(user, roles);
-        user.setCreateDate(Date.from(Instant.now()));
+        assureDefaultFieldsAreNotEmpty(user);
+        user.setCreateDate(Date.from(clock.instant()));
         final User newUser = userRepository.save(user);
 
         roles.forEach(role -> {
@@ -67,27 +70,21 @@ public class UserService {
         return roleRepository.findByUserId(userId);
     }
 
-    private void assureDefaultFieldsAreNotEmpty(User user, List<Role> roles) {
+    private void assureDefaultFieldsAreNotEmpty(User user) {
         if (user.getActive() == null) {
             user.setActive(true);
+        }
+
+        if (user.getCurrentProfile()  == null) {
+            user.setCurrentProfile(Profile.PASSENGER);
         }
 
         if (user.getBlocked() == null) {
             user.setBlocked(false);
         }
 
-        for (Role role : roles) {
-            if (role.getActive() == null) {
-                role.setActive(true);
-            }
-        }
-
         if (user.getBlocked()) {
             user.setActive(false);
-
-            for (Role role : roles) {
-                role.setActive(false);
-            }
         }
     }
 
@@ -134,6 +131,22 @@ public class UserService {
         } else {
             return userRepository.findAllByCurrentProfile(Profile.DRIVER);
         }
+    }
+
+    public List<User> getInactiveUsers() {
+        return userRepository.findInactive();
+    }
+
+    public void setUserAsInactive(User user) {
+        user.setActive(false);
+        userRepository.save(user);
+    }
+
+    public void setLastActivity(Long id) {
+        User user = get(id);
+        user.setLastActivity(Date.from(clock.instant()));
+        user.setActive(true);
+        userRepository.save(user);
     }
 
 }

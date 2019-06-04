@@ -14,6 +14,9 @@ public class UserMessage {
     private String email;
     private String password;
     private Date createDate;
+    private Date lastActivity;
+    private Boolean active;
+    private Boolean blocked;
 
     private Double lat;
     private Double lng;
@@ -60,6 +63,30 @@ public class UserMessage {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public Date getLastActivity() {
+        return lastActivity;
+    }
+
+    public void setLastActivity(Date lastActivity) {
+        this.lastActivity = lastActivity;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Boolean getBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(Boolean blocked) {
+        this.blocked = blocked;
     }
 
     public Double getLat() {

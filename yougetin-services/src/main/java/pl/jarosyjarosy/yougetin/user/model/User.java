@@ -23,6 +23,7 @@ public class User {
 
     private Date createDate;
 
+    private Date lastActivity;
     private Boolean active;
     private Boolean blocked;
 
@@ -69,6 +70,14 @@ public class User {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public Date getLastActivity() {
+        return lastActivity;
+    }
+
+    public void setLastActivity(Date lastActivity) {
+        this.lastActivity = lastActivity;
     }
 
     public Boolean getActive() {
@@ -121,6 +130,7 @@ public class User {
                 Objects.equal(email, user.email) &&
                 Objects.equal(password, user.password) &&
                 Objects.equal(createDate, user.createDate) &&
+                Objects.equal(lastActivity, user.lastActivity) &&
                 Objects.equal(active, user.active) &&
                 Objects.equal(blocked, user.blocked) &&
                 Objects.equal(lat, user.lat) &&
@@ -130,7 +140,7 @@ public class User {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, name, email, password, createDate, active, blocked, lat, lng, currentProfile);
+        return Objects.hashCode(id, name, email, password, createDate, lastActivity, active, blocked, lat, lng, currentProfile);
     }
 
     @Override
@@ -141,6 +151,7 @@ public class User {
                 .add("email", email)
                 .add("password", password)
                 .add("createDate", createDate)
+                .add("lastActivity", lastActivity)
                 .add("active", active)
                 .add("blocked", blocked)
                 .add("lat", lat)
