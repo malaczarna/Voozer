@@ -10,8 +10,6 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.location.Location
 import android.util.Log
-import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -32,6 +30,12 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.TypeFilter
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.AutocompleteActivity
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.content_main.*
 import pl.voozer.service.model.Position
@@ -39,6 +43,7 @@ import pl.voozer.service.model.Profile
 import pl.voozer.service.model.User
 import pl.voozer.service.network.Connection
 import pl.voozer.utils.SharedPreferencesHelper
+import java.util.*
 
 class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener,
@@ -50,6 +55,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private lateinit var user: User
     private lateinit var toolbar: Toolbar
     private lateinit var navView: NavigationView
+    private var fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
+    private val AUTOCOMPLETE_REQUEST_CODE = 1
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
@@ -142,6 +149,29 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         return true
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (data is Intent) {
+            if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
+                when (resultCode) {
+                    RESULT_OK -> {
+                        val place = Autocomplete.getPlaceFromIntent(data)
+                        place.latLng?.let { placeMarkerOnMap(it) }
+                        tvSearch.text = place.address
+
+
+                    }
+                    AutocompleteActivity.RESULT_ERROR -> {
+                        val status = Autocomplete.getStatusFromIntent(data)
+                        Log.i("Places-API", status.statusMessage)
+                    }
+                    RESULT_CANCELED -> {
+                        // The user canceled the operation.
+                    }
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         when (SharedPreferencesHelper.isMainTheme(applicationContext)) {
             true -> {
@@ -200,9 +230,24 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 }
             }
         }
+        llSearchBar.setOnClickListener {
+            val intent = Autocomplete.IntentBuilder(
+                AutocompleteActivityMode.FULLSCREEN, fields)
+                .setTypeFilter(TypeFilter.ADDRESS)
+                .setCountry("PL")
+                .build(this)
+            startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)
+        }
     }
 
     private fun initLayout() {
+        val apiKey = packageManager.getApplicationInfo(
+            packageName,
+            PackageManager.GET_META_DATA
+        ).metaData.getString(
+            "com.google.android.geo.API_KEY"
+        )
+        Places.initialize(applicationContext, apiKey)
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
@@ -224,8 +269,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     }
 
     private fun placeMarkerOnMap(location: LatLng) {
+        googleMap.clear()
         val markerOptions = MarkerOptions().position(location)
         googleMap.addMarker(markerOptions)
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 12f))
     }
 
     @SuppressWarnings("CheckResult")
