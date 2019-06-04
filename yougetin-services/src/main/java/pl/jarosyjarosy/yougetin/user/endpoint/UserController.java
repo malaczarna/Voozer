@@ -3,6 +3,7 @@ package pl.jarosyjarosy.yougetin.user.endpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.jarosyjarosy.yougetin.auth.model.Identity;
+import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.UserMessage;
 import pl.jarosyjarosy.yougetin.user.model.User;
 import pl.jarosyjarosy.yougetin.user.service.UserMapperService;
@@ -11,12 +12,14 @@ import pl.jarosyjarosy.yougetin.user.service.UserService;
 import javax.servlet.http.HttpServletRequest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final UserService userService;
-    private final UserMapperService userMapperService;
+    private UserService userService;
+    private UserMapperService userMapperService;
 
     @Autowired
     public UserController(UserService userService,
@@ -49,6 +52,59 @@ public class UserController {
         );
 
         return userMapperService.mapUser(newUser);
+    }
+
+    @RequestMapping(
+            value = "/position",
+            method = RequestMethod.GET,
+            produces = "application/json"
+    )
+    public Position getUserPosition(HttpServletRequest request) {
+
+        return userService.getUserPosition(new Identity(request).getUserId());
+    }
+
+    @RequestMapping(
+            value = "/position",
+            method = RequestMethod.POST,
+            consumes = "application/json",
+            produces = "application/json"
+    )
+    public UserMessage saveUserPosition(@RequestBody Position position, HttpServletRequest request) {
+
+        return userMapperService.mapUser(userService.setUserPosition(new Identity(request).getUserId(), position));
+    }
+
+    @RequestMapping(
+            value = "/info",
+            method = RequestMethod.GET,
+            produces = "application/json"
+    )
+    public UserMessage getCurrentProfile(HttpServletRequest request) {
+
+        return userMapperService.mapUser(userService.get(new Identity(request).getUserId()));
+    }
+
+    @RequestMapping(
+            value = "/change-profile-command",
+            method = RequestMethod.POST,
+            produces = "application/json"
+    )
+    public UserMessage changeProfile(HttpServletRequest request) {
+
+        return userMapperService.mapUser(userService.changeProfile(new Identity(request).getUserId()));
+    }
+
+    @RequestMapping(
+            value = "/others",
+            method = RequestMethod.GET,
+            produces = "application/json"
+    )
+    public List<UserMessage> getOthersUsers(HttpServletRequest request) {
+
+        return userService.getUsersWithDifferentProfile(new Identity(request).getUserId()).stream()
+                .map(userMapperService::mapUser)
+                .collect(Collectors.toList());
     }
 
 }
