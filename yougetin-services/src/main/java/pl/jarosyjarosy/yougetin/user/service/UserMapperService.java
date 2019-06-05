@@ -39,6 +39,8 @@ public class UserMapperService {
         userMessage.setEmail(user.getEmail());
         userMessage.setName(user.getName());
         userMessage.setCurrentProfile(user.getCurrentProfile());
+        userMessage.setLat(user.getLat());
+        userMessage.setLng(user.getLng());
 
         return userMessage;
     }

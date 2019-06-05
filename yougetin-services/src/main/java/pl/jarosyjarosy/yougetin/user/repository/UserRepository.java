@@ -24,4 +24,7 @@ public interface UserRepository extends CrudRepository<User, Long>, QueryByExamp
     @Query(value = "select * from users where last_activity is null or last_activity < now() - interval 3 minute", nativeQuery = true)
     List<User> findInactive();
 
+    @Query(value = "select * from users where active = true and current_profile = 'DRIVER'", nativeQuery = true)
+    List<User> findActiveDrivers();
+
 }

@@ -149,4 +149,9 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public List<User> getActiveDrivers() {
+        LOGGER.info("LOGGER: get active drivers");
+        return userRepository.findActiveDrivers();
+    }
+
 }
