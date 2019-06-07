@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import pl.jarosyjarosy.yougetin.destination.model.Destination;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
 import pl.jarosyjarosy.yougetin.user.model.Profile;
@@ -137,11 +138,12 @@ public class UserService {
         return userRepository.findInactive();
     }
 
+    @Transactional
     public void setUserAsInactive(User user) {
         user.setActive(false);
         userRepository.save(user);
     }
-
+    @Transactional
     public void setLastActivity(Long id) {
         User user = get(id);
         user.setLastActivity(Date.from(clock.instant()));
@@ -152,6 +154,20 @@ public class UserService {
     public List<User> getActiveDrivers() {
         LOGGER.info("LOGGER: get active drivers");
         return userRepository.findActiveDrivers();
+    }
+
+    @Transactional
+    public User saveDestination(Destination destination) {
+        User user = get(destination.getUserId());
+        user.setDestinationId(destination.getId());
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User stopDestination(Long id) {
+        User user = get(id);
+        user.setDestinationId(-1L);
+        return userRepository.save(user);
     }
 
 }

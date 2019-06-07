@@ -16,6 +16,7 @@ public class UserMessage {
     private Date createDate;
     private Date lastActivity;
     private Boolean active;
+    private Long destinationId;
     private Boolean blocked;
 
     private Double lat;
@@ -79,6 +80,14 @@ public class UserMessage {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public Long getDestinationId() {
+        return destinationId;
+    }
+
+    public void setDestinationId(Long destinationId) {
+        this.destinationId = destinationId;
     }
 
     public Boolean getBlocked() {

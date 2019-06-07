@@ -1,5 +1,6 @@
 package pl.jarosyjarosy.yougetin.user.model;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.persistence.*;
@@ -25,6 +26,7 @@ public class User {
 
     private Date lastActivity;
     private Boolean active;
+    private Long destinationId;
     private Boolean blocked;
 
     private Double lat;
@@ -84,6 +86,14 @@ public class User {
         return active;
     }
 
+    public Long getDestinationId() {
+        return destinationId;
+    }
+
+    public void setDestinationId(Long destinationId) {
+        this.destinationId = destinationId;
+    }
+
     public void setActive(Boolean active) {
         this.active = active;
     }
@@ -132,6 +142,7 @@ public class User {
                 Objects.equal(createDate, user.createDate) &&
                 Objects.equal(lastActivity, user.lastActivity) &&
                 Objects.equal(active, user.active) &&
+                Objects.equal(destinationId, user.destinationId) &&
                 Objects.equal(blocked, user.blocked) &&
                 Objects.equal(lat, user.lat) &&
                 Objects.equal(lng, user.lng) &&
@@ -140,12 +151,12 @@ public class User {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, name, email, password, createDate, lastActivity, active, blocked, lat, lng, currentProfile);
+        return Objects.hashCode(id, name, email, password, createDate, lastActivity, active, destinationId, blocked, lat, lng, currentProfile);
     }
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("name", name)
                 .add("email", email)
@@ -153,6 +164,7 @@ public class User {
                 .add("createDate", createDate)
                 .add("lastActivity", lastActivity)
                 .add("active", active)
+                .add("destinationId", destinationId)
                 .add("blocked", blocked)
                 .add("lat", lat)
                 .add("lng", lng)

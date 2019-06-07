@@ -119,4 +119,15 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
+    @RequestMapping(
+            value = "/stop-destination-command",
+            method = RequestMethod.POST,
+            produces = "application/json"
+    )
+    public UserMessage stopDestination(HttpServletRequest request) {
+
+        return userMapperService.mapUser(userService.stopDestination(new Identity(request).getUserId()));
+    }
+
+
 }

@@ -16,7 +16,7 @@ import java.util.List;
 
 @Component
 public class TripService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TripService.class);
 
     private final TripRepository tripRepository;
     private final Clock clock;
