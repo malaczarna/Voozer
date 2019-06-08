@@ -11,6 +11,8 @@ public class DestinationMessage {
     private String name;
     private Long userId;
     private Date createDate;
+    private Double lat;
+    private Double lng;
 
     public Long getId() {
         return id;
@@ -42,5 +44,21 @@ public class DestinationMessage {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public Double getLat() {
+        return lat;
+    }
+
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+
+    public Double getLng() {
+        return lng;
+    }
+
+    public void setLng(Double lng) {
+        this.lng = lng;
     }
 }

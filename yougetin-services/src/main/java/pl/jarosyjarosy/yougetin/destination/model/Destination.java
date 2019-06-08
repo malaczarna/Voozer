@@ -15,6 +15,8 @@ public class Destination {
     private String name;
     private Long userId;
     private Date createDate;
+    private Double lat;
+    private Double lng;
 
     public Long getId() {
         return id;
@@ -48,6 +50,22 @@ public class Destination {
         this.createDate = createDate;
     }
 
+    public Double getLat() {
+        return lat;
+    }
+
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+
+    public Double getLng() {
+        return lng;
+    }
+
+    public void setLng(Double lng) {
+        this.lng = lng;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -56,12 +74,14 @@ public class Destination {
         return Objects.equal(id, that.id) &&
                 Objects.equal(name, that.name) &&
                 Objects.equal(userId, that.userId) &&
-                Objects.equal(createDate, that.createDate);
+                Objects.equal(createDate, that.createDate) &&
+                Objects.equal(lat, that.lat) &&
+                Objects.equal(lng, that.lng);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, name, userId, createDate);
+        return Objects.hashCode(id, name, userId, createDate, lat, lng);
     }
 
     @Override
@@ -71,6 +91,8 @@ public class Destination {
                 .add("name", name)
                 .add("userId", userId)
                 .add("createDate", createDate)
+                .add("lat", lat)
+                .add("lng", lng)
                 .toString();
     }
 }
