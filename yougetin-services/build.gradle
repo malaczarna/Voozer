@@ -19,9 +19,9 @@ sourceCompatibility = '1.8'
 
 configurations {
     providedRuntime
-//    compile.exclude module: 'spring-boot-starter-tomcat'
-//    compile.exclude group: 'org.apache.tomcat'
-//    compile.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    compile.exclude module: 'spring-boot-starter-tomcat'
+    compile.exclude group: 'org.apache.tomcat'
+    compile.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 }
 
 repositories {
