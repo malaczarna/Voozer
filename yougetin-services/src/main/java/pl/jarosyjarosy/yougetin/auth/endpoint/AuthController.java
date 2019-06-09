@@ -3,6 +3,7 @@ package pl.jarosyjarosy.yougetin.auth.endpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.jarosyjarosy.yougetin.auth.model.LoginMessage;
+import pl.jarosyjarosy.yougetin.auth.model.Token;
 import pl.jarosyjarosy.yougetin.auth.service.AuthService;
 
 import javax.servlet.http.Cookie;
@@ -27,7 +28,7 @@ public class AuthController {
             consumes = "application/json",
             produces = "application/json"
     )
-    public String login(@RequestBody final LoginMessage login) throws InvalidKeySpecException, NoSuchAlgorithmException {
+    public Token login(@RequestBody final LoginMessage login) throws InvalidKeySpecException, NoSuchAlgorithmException {
         return authService.getAuthToken(login);
     }
 

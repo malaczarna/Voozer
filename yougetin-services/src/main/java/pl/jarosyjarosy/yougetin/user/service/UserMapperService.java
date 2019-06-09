@@ -38,6 +38,7 @@ public class UserMapperService {
         userMessage.setId(user.getId());
         userMessage.setEmail(user.getEmail());
         userMessage.setName(user.getName());
+        userMessage.setCurrentProfile(user.getCurrentProfile());
 
         return userMessage;
     }
@@ -49,7 +50,7 @@ public class UserMapperService {
         return roleMessage;
     }
 
-    Role mapRoleMessage(RoleMessage roleMessage) {
+     public Role mapRoleMessage(RoleMessage roleMessage) {
         Role role = new Role();
         BeanUtils.copyProperties(roleMessage, role);
 

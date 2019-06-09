@@ -26,6 +26,11 @@ public class User {
     private Boolean active;
     private Boolean blocked;
 
+    private Double lat;
+    private Double lng;
+    @Enumerated(EnumType.STRING)
+    private Profile currentProfile;
+
     public Long getId() {
         return id;
     }
@@ -82,6 +87,30 @@ public class User {
         this.blocked = blocked;
     }
 
+    public Double getLat() {
+        return lat;
+    }
+
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+
+    public Double getLng() {
+        return lng;
+    }
+
+    public void setLng(Double lng) {
+        this.lng = lng;
+    }
+
+    public Profile getCurrentProfile() {
+        return currentProfile;
+    }
+
+    public void setCurrentProfile(Profile currentProfile) {
+        this.currentProfile = currentProfile;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -93,12 +122,15 @@ public class User {
                 Objects.equal(password, user.password) &&
                 Objects.equal(createDate, user.createDate) &&
                 Objects.equal(active, user.active) &&
-                Objects.equal(blocked, user.blocked);
+                Objects.equal(blocked, user.blocked) &&
+                Objects.equal(lat, user.lat) &&
+                Objects.equal(lng, user.lng) &&
+                currentProfile == user.currentProfile;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, name, email, password, createDate, active, blocked);
+        return Objects.hashCode(id, name, email, password, createDate, active, blocked, lat, lng, currentProfile);
     }
 
     @Override
@@ -111,6 +143,9 @@ public class User {
                 .add("createDate", createDate)
                 .add("active", active)
                 .add("blocked", blocked)
+                .add("lat", lat)
+                .add("lng", lng)
+                .add("currentProfile", currentProfile)
                 .toString();
     }
 }

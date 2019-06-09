@@ -1,6 +1,7 @@
 package pl.jarosyjarosy.yougetin.user.endpoint.message;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import pl.jarosyjarosy.yougetin.user.model.Profile;
 
 import java.util.Date;
 import java.util.List;
@@ -13,6 +14,11 @@ public class UserMessage {
     private String email;
     private String password;
     private Date createDate;
+
+    private Double lat;
+    private Double lng;
+
+    private Profile currentProfile;
 
     private List<RoleMessage> roles;
 
@@ -54,6 +60,30 @@ public class UserMessage {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public Double getLat() {
+        return lat;
+    }
+
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+
+    public Double getLng() {
+        return lng;
+    }
+
+    public void setLng(Double lng) {
+        this.lng = lng;
+    }
+
+    public Profile getCurrentProfile() {
+        return currentProfile;
+    }
+
+    public void setCurrentProfile(Profile currentProfile) {
+        this.currentProfile = currentProfile;
     }
 
     public List<RoleMessage> getRoles() {

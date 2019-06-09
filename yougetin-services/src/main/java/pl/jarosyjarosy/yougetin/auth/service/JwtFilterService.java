@@ -42,6 +42,7 @@ public class JwtFilterService extends GenericFilterBean {
                 && !request.getRequestURI().equals("/users/register-command")
                 && !request.getMethod().equals("OPTIONS")
                 && !request.getRequestURI().startsWith("/error")
+                && !request.getRequestURI().startsWith("/favicon.ico")
                 && !request.getRequestURI().startsWith("/health")
                 && !request.getRequestURI().startsWith("/open")
                 && !request.getRequestURI().startsWith("/auth/set-cookie")) {
