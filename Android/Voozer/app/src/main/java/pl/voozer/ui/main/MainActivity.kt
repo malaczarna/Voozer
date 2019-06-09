@@ -5,6 +5,7 @@ import com.tbruyelle.rxpermissions2.RxPermissions
 import pl.voozer.R
 import pl.voozer.ui.base.BaseActivity
 import android.Manifest.permission
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -21,8 +22,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -51,7 +51,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
 
     private lateinit var googleMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
     private lateinit var lastLocation: Location
+    private var requestingLocationUpdates: Boolean = false
     private lateinit var user: User
     private lateinit var toolbar: Toolbar
     private lateinit var navView: NavigationView
@@ -102,6 +105,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 toolbar.findViewById<ImageView>(R.id.ivProfile)
                     .setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_walking))
                 toolbar.findViewById<TextView>(R.id.tvProfile).text = getString(R.string.menu_passenger)
+                btnAcceptDestination.setBackgroundColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
             }
             Profile.DRIVER -> {
                 navView.getHeaderView(0).findViewById<LinearLayout>(R.id.llHeaderMain).setBackgroundColor(
@@ -112,6 +116,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 toolbar.findViewById<ImageView>(R.id.ivProfile)
                     .setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.ic_steering_wheel))
                 toolbar.findViewById<TextView>(R.id.tvProfile).text = getString(R.string.menu_driver)
+                btnAcceptDestination.setBackgroundColor(ContextCompat.getColor(applicationContext, R.color.colorPrimaryDriver))
             }
         }
     }
@@ -157,8 +162,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         val place = Autocomplete.getPlaceFromIntent(data)
                         place.latLng?.let { placeMarkerOnMap(it) }
                         tvSearch.text = place.address
-
-
+                        ObjectAnimator.ofFloat(llAcceptDestination, "translationY", llHeaderBar.height.toFloat()).apply {
+                            duration = 1000
+                            start()
+                        }
                     }
                     AutocompleteActivity.RESULT_ERROR -> {
                         val status = Autocomplete.getStatusFromIntent(data)
@@ -169,6 +176,20 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     }
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (requestingLocationUpdates) {
+            startLocationUpdates()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if(requestingLocationUpdates) {
+            stopLocationUpdates()
         }
     }
 
@@ -184,6 +205,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
         super.onCreate(savedInstanceState)
         initLayout()
+        getLocationPermission()
+        Log.d("height", llHeaderBar.height.toString())
         fabMyPosition.setOnClickListener {
             if (ContextCompat.checkSelfPermission(
                     applicationContext,
@@ -202,6 +225,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     }
                 }
             }
+            requestingLocationUpdates = true
+            startLocationUpdates()
         }
         toolbar.findViewById<ImageView>(R.id.ivProfile).setOnClickListener {
             MaterialDialog(this).show {
@@ -238,16 +263,20 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 .build(this)
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)
         }
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations){
+                    Log.d("Location-Update", "${location.latitude}, ${location.longitude}")
+                }
+            }
+        }
+        btnAcceptDestination.setOnClickListener {
+
+        }
     }
 
     private fun initLayout() {
-        val apiKey = packageManager.getApplicationInfo(
-            packageName,
-            PackageManager.GET_META_DATA
-        ).metaData.getString(
-            "com.google.android.geo.API_KEY"
-        )
-        Places.initialize(applicationContext, apiKey)
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
@@ -258,14 +287,44 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
         navView.setNavigationItemSelectedListener(this)
+        controller.loadUser()
+    }
 
-        getLocationPermission()
-
+    private fun initLocation(){
+        val apiKey = packageManager.getApplicationInfo(
+            packageName,
+            PackageManager.GET_META_DATA
+        ).metaData.getString(
+            "com.google.android.geo.API_KEY"
+        )
+        Places.initialize(applicationContext, apiKey)
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationRequest = LocationRequest()
+        locationRequest.interval = 10
+    }
 
-        controller.loadUser()
+    private fun startLocationUpdates() {
+        if (ContextCompat.checkSelfPermission(
+                applicationContext,
+                permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(
+                applicationContext,
+                permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                null /* Looper */
+            )
+        }
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     private fun placeMarkerOnMap(location: LatLng) {
@@ -280,6 +339,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         val rxPermissions = RxPermissions(this)
         rxPermissions
             .request(permission.ACCESS_FINE_LOCATION)
-            .subscribe {}
+            .subscribe{granted ->
+                if (granted){
+                    initLocation()
+                }
+            }
     }
 }

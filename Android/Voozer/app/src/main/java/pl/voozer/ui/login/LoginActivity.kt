@@ -30,13 +30,14 @@ class LoginActivity : BaseActivity<LoginController, LoginView>(), LoginView {
     }
 
     override fun login() {
+        controller.api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit().createApi()
         controller.loadUser()
     }
 
     override fun initController() {
         controller = LoginController()
         controller.view = this
-        controller.api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit().createApi()
+        controller.api = Connection.Builder().provideOkHttpClient().provideRetrofit().createApi()
         controller.sharedPreferences = this.getSharedPreferences("123", Context.MODE_PRIVATE)
     }
 

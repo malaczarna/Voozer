@@ -36,6 +36,20 @@ class Connection {
                 this.okHttpClient = client.build()
             }
 
+            fun provideOkHttpClient() = apply {
+                val logging = LoggingInterceptor.Builder()
+                    .loggable(BuildConfig.DEBUG)
+                    .setLevel(com.ihsanbal.logging.Level.BODY)
+                    .log(Log.VERBOSE)
+                    .request("Request")
+                    .response("Response")
+                    .build()
+                val client = OkHttpClient.Builder()
+                client.addInterceptor(logging)
+                client.addInterceptor(StethoInterceptor())
+                this.okHttpClient = client.build()
+            }
+
             fun provideRetrofit() = apply {
                 retrofit = Retrofit.Builder()
                     .baseUrl(BASE_URL)

@@ -11,6 +11,7 @@
 
     <string name="search_bar_greeting">Witaj</string>
     <string name="search_bar_title">Dokąd dzisiaj?</string>
+    <string name="header_bar_accept">Jedziemy!</string>
 
 
     <string name="menu_rides">Twoje podwózki</string>
