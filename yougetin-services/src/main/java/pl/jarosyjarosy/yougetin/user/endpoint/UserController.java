@@ -107,4 +107,27 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
+    @RequestMapping(
+            value = "/active/drivers",
+            method = RequestMethod.GET,
+            produces = "application/json"
+    )
+    public List<UserMessage> getActiveDrivers(HttpServletRequest request) {
+
+        return userService.getActiveDrivers().stream()
+                .map(userMapperService::mapUser)
+                .collect(Collectors.toList());
+    }
+
+    @RequestMapping(
+            value = "/stop-destination-command",
+            method = RequestMethod.POST,
+            produces = "application/json"
+    )
+    public UserMessage stopDestination(HttpServletRequest request) {
+
+        return userMapperService.mapUser(userService.stopDestination(new Identity(request).getUserId()));
+    }
+
+
 }

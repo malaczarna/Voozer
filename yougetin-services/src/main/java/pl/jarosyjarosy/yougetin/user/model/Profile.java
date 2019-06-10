@@ -1,7 +1,6 @@
 package pl.jarosyjarosy.yougetin.user.model;
 
 public enum Profile {
-
     PASSENGER("Pasażer"),
     DRIVER("Kierowca");
 

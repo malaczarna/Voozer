@@ -2,11 +2,13 @@ package pl.jarosyjarosy.yougetin.auth.endpoint;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import pl.jarosyjarosy.yougetin.auth.model.Identity;
 import pl.jarosyjarosy.yougetin.auth.model.LoginMessage;
 import pl.jarosyjarosy.yougetin.auth.model.Token;
 import pl.jarosyjarosy.yougetin.auth.service.AuthService;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -42,5 +44,13 @@ public class AuthController {
         cookie.setMaxAge(expiry);
         cookie.setPath("/");
         response.addCookie(cookie);
+    }
+
+    @RequestMapping(
+            value = "/logout",
+            method = RequestMethod.POST
+    )
+    public void logout(HttpServletRequest request) {
+        authService.logout(new Identity(request));
     }
 }
