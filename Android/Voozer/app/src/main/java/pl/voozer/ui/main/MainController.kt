@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import pl.voozer.service.model.Destination
 import pl.voozer.service.model.Position
 import pl.voozer.ui.base.BaseController
 
@@ -51,6 +52,45 @@ class MainController : BaseController<MainView>() {
     @SuppressLint("CheckResult")
     fun changeProfile() {
         api.setProfile()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                {},
+                { error: Throwable ->
+                    Log.d("Error", error.localizedMessage)
+                }
+            )
+    }
+
+    @SuppressLint("CheckResult")
+    fun setDestination(destination: Destination) {
+        api.setDestination(destination = destination)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                {},
+                { error: Throwable ->
+                    Log.d("Error", error.localizedMessage)
+                }
+            )
+    }
+
+    @SuppressLint("CheckResult")
+    fun loadDrivers() {
+        api.getDrivers()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                { drivers -> view.updateDrivers(drivers) },
+                { error: Throwable ->
+                    Log.d("Error", error.localizedMessage)
+                }
+            )
+    }
+
+    @SuppressLint("CheckResult")
+    fun finishDestination() {
+        api.stopDestination()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(

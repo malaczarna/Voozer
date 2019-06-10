@@ -12,6 +12,9 @@ import android.content.res.ColorStateList
 import android.location.Location
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
+import android.view.animation.AlphaAnimation
+import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -38,6 +41,7 @@ import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.content_main.*
+import pl.voozer.service.model.Destination
 import pl.voozer.service.model.Position
 import pl.voozer.service.model.Profile
 import pl.voozer.service.model.User
@@ -54,6 +58,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private lateinit var lastLocation: Location
+    private lateinit var destination: Destination
     private var requestingLocationUpdates: Boolean = false
     private lateinit var user: User
     private lateinit var toolbar: Toolbar
@@ -90,6 +95,12 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
 
     override fun updatePosition(position: Position) {
         Log.d("latLng", "${position.lat}, ${position.lng}")
+    }
+
+    override fun updateDrivers(drivers: List<User>) {
+        for (driver in drivers) {
+            placeDriverMarkerOnMap(LatLng(driver.lat, driver.lng))
+        }
     }
 
     override fun updateUser(user: User) {
@@ -160,7 +171,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 when (resultCode) {
                     RESULT_OK -> {
                         val place = Autocomplete.getPlaceFromIntent(data)
-                        place.latLng?.let { placeMarkerOnMap(it) }
+                        destination = Destination(name = place.name!!, lat = place.latLng!!.latitude, lng = place.latLng!!.longitude)
+                        place.latLng?.let { placeDestinationMarkerOnMap(it) }
                         tvSearch.text = place.address
                         ObjectAnimator.ofFloat(llAcceptDestination, "translationY", llHeaderBar.height.toFloat()).apply {
                             duration = 1000
@@ -225,8 +237,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     }
                 }
             }
-            requestingLocationUpdates = true
-            startLocationUpdates()
         }
         toolbar.findViewById<ImageView>(R.id.ivProfile).setOnClickListener {
             MaterialDialog(this).show {
@@ -267,12 +277,57 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult ?: return
                 for (location in locationResult.locations){
-                    Log.d("Location-Update", "${location.latitude}, ${location.longitude}")
+                    controller.sendPosition(Position(location.latitude, location.longitude))
                 }
             }
         }
         btnAcceptDestination.setOnClickListener {
-
+            requestingLocationUpdates = true
+            startLocationUpdates()
+            controller.setDestination(destination = destination)
+            ObjectAnimator.ofFloat(llAcceptDestination, "translationY", -llAcceptDestination.height.toFloat()).apply {
+                duration = 1000
+                start()
+            }
+            ObjectAnimator.ofFloat(llHeaderBar, "translationY", -llHeaderBar.height.toFloat()).apply {
+                duration = 1000
+                start()
+            }
+            fabCancelRide.animate().alpha(1f).setDuration(1000).withStartAction {
+                fabCancelRide.show()
+            }
+            if (user.profile == Profile.PASSENGER) {
+                controller.loadDrivers()
+            }
+        }
+        fabCancelRide.setOnClickListener {
+            MaterialDialog(this).show {
+                title(text = getString(R.string.popup_cancel_ride_title))
+                cancelOnTouchOutside(true)
+                noAutoDismiss()
+                negativeButton(R.string.cancel) {
+                    dismiss()
+                }
+                positiveButton(R.string.confirm) {
+                    dismiss()
+                    controller.finishDestination()
+                    requestingLocationUpdates = false
+                    stopLocationUpdates()
+                    this@MainActivity.tvSearch.text = getString(R.string.search_bar_title)
+                    removeMarkers()
+                    ObjectAnimator.ofFloat(this@MainActivity.llAcceptDestination, "translationY", 0f).apply {
+                        duration = 1000
+                        start()
+                    }
+                    ObjectAnimator.ofFloat(this@MainActivity.llHeaderBar, "translationY", 0f).apply {
+                        duration = 1000
+                        start()
+                    }
+                    this@MainActivity.fabCancelRide.animate().alpha(0f).setDuration(1000).withEndAction {
+                        this@MainActivity.fabCancelRide.hide()
+                    }
+                }
+            }
         }
     }
 
@@ -327,11 +382,20 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
-    private fun placeMarkerOnMap(location: LatLng) {
+    private fun placeDestinationMarkerOnMap(location: LatLng) {
         googleMap.clear()
         val markerOptions = MarkerOptions().position(location)
         googleMap.addMarker(markerOptions)
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 12f))
+    }
+
+    private fun placeDriverMarkerOnMap(location: LatLng) {
+        val markerOptions = MarkerOptions().position(location)
+        googleMap.addMarker(markerOptions)
+    }
+
+    private fun removeMarkers() {
+        googleMap.clear()
     }
 
     @SuppressWarnings("CheckResult")

@@ -99,9 +99,21 @@
                 android:layout_gravity="bottom"
                 android:layout_margin="16dp"
                 android:layout_width="match_parent"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:gravity="end"
                 android:layout_height="wrap_content">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fabCancelRide"
+                    style="@style/Widget.MaterialComponents.FloatingActionButton"
+                    app:backgroundTint="@android:color/holo_red_dark"
+                    android:src="@drawable/ic_times"
+                    android:layout_margin="16dp"
+                    android:visibility="gone"
+                    android:alpha="0"
+                    android:tint="@android:color/white"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                         android:id="@+id/fabMyPosition"

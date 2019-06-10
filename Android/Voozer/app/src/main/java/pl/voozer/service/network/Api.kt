@@ -23,4 +23,16 @@ interface Api {
 
     @GET("users/info")
     fun getUser(): Observable<User>
+
+    @POST("destinations")
+    fun setDestination(@Body destination: Destination): Observable<Unit?>
+
+    @GET("destinations")
+    fun getDestination(): Observable<Unit?>
+
+    @POST("users/stop-destination-command")
+    fun stopDestination(): Observable<Unit?>
+
+    @GET("users/active/drivers")
+    fun getDrivers(): Observable<List<User>>
 }

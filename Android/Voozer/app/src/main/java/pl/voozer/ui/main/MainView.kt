@@ -7,4 +7,5 @@ import pl.voozer.ui.base.BaseView
 interface MainView : BaseView {
     fun updatePosition(position: Position)
     fun updateUser(user: User)
+    fun updateDrivers(drivers: List<User>)
 }

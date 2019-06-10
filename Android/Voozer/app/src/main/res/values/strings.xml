@@ -5,6 +5,7 @@
     <string name="action_settings">Ustawienia</string>
 
     <string name="popup_title">Czy chcesz zmienić profil?</string>
+    <string name="popup_cancel_ride_title">Czy chcesz anulować przejazd?</string>
 
     <string name="confirm">Tak</string>
     <string name="cancel">Nie</string>
