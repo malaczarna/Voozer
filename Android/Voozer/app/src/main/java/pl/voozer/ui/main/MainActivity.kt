@@ -18,11 +18,13 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.google.android.gms.location.*
@@ -30,6 +32,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
@@ -46,6 +49,7 @@ import pl.voozer.service.model.Position
 import pl.voozer.service.model.Profile
 import pl.voozer.service.model.User
 import pl.voozer.service.network.Connection
+import pl.voozer.ui.adapter.DriversAdapter
 import pl.voozer.utils.SharedPreferencesHelper
 import java.util.*
 
@@ -101,6 +105,12 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         for (driver in drivers) {
             placeDriverMarkerOnMap(LatLng(driver.lat, driver.lng))
         }
+        rvDriversList.layoutManager = LinearLayoutManager(applicationContext)
+        rvDriversList.adapter = DriversAdapter(drivers = drivers, context = applicationContext, listener = object: DriversAdapter.OnItemClickListener {
+            override fun onDriverClick(driver: User) {
+                Toast.makeText(applicationContext, "Invite sent to driver!", Toast.LENGTH_LONG).show()
+            }
+        })
     }
 
     override fun updateUser(user: User) {
@@ -174,9 +184,22 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         destination = Destination(name = place.name!!, lat = place.latLng!!.latitude, lng = place.latLng!!.longitude)
                         place.latLng?.let { placeDestinationMarkerOnMap(it) }
                         tvSearch.text = place.address
-                        ObjectAnimator.ofFloat(llAcceptDestination, "translationY", llHeaderBar.height.toFloat()).apply {
-                            duration = 1000
-                            start()
+                        when (user.profile) {
+                            Profile.PASSENGER -> {
+                                llDriversList.visibility = View.VISIBLE
+                                controller.loadDrivers()
+                                ObjectAnimator.ofFloat(llDriversList, "translationY", llHeaderBar.height.toFloat()).apply {
+                                    duration = 1000
+                                    start()
+                                }
+                            }
+                            Profile.DRIVER -> {
+                                btnAcceptDestination.isEnabled = true
+                                ObjectAnimator.ofFloat(llAcceptDestination, "translationY", llHeaderBar.height.toFloat()).apply {
+                                    duration = 1000
+                                    start()
+                                }
+                            }
                         }
                     }
                     AutocompleteActivity.RESULT_ERROR -> {
@@ -296,9 +319,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             fabCancelRide.animate().alpha(1f).setDuration(1000).withStartAction {
                 fabCancelRide.show()
             }
-            if (user.profile == Profile.PASSENGER) {
-                controller.loadDrivers()
-            }
+            btnAcceptDestination.isEnabled = false
         }
         fabCancelRide.setOnClickListener {
             MaterialDialog(this).show {
@@ -390,7 +411,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     }
 
     private fun placeDriverMarkerOnMap(location: LatLng) {
-        val markerOptions = MarkerOptions().position(location)
+        val markerOptions = MarkerOptions().position(location).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car_side))
         googleMap.addMarker(markerOptions)
     }
 

@@ -5,6 +5,7 @@ import android.util.Log
 import kotlinx.android.synthetic.main.activity_register.*
 import pl.voozer.R
 import pl.voozer.scquiz.ui.register.RegisterView
+import pl.voozer.service.model.Profile
 import pl.voozer.service.model.Register
 import pl.voozer.service.model.Roles
 import pl.voozer.service.network.Connection
@@ -34,7 +35,7 @@ class RegisterActivity : BaseActivity<RegisterController, RegisterView>(), Regis
                     tilName.editText?.text.toString(),
                     tilEmail.editText?.text.toString(),
                     tilPassword.editText?.text.toString(),
-                    listOf(Roles("USER", true))
+                    listOf(Roles(Profile.PASSENGER), Roles(Profile.DRIVER))
                 )
             )
         }
