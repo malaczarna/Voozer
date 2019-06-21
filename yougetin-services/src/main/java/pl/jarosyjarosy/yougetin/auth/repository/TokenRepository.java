@@ -14,5 +14,7 @@ import java.util.List;
 @Repository
 @Transactional
 public interface TokenRepository extends CrudRepository<Token, Long> {
-    List<Token> findByToken(String token);
+    Token findByToken(String token);
+
+    List<Token> findByUserId(Long id);
 }

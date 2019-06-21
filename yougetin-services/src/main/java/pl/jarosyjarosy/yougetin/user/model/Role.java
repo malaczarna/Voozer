@@ -15,7 +15,6 @@ public class Role {
     private Long userId;
     @Enumerated(EnumType.STRING)
     private RoleType type;
-    private Boolean active;
 
     public Long getId() {
         return id;
@@ -41,14 +40,6 @@ public class Role {
         this.type = type;
     }
 
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -56,13 +47,12 @@ public class Role {
         Role role = (Role) o;
         return Objects.equal(id, role.id) &&
                 Objects.equal(userId, role.userId) &&
-                Objects.equal(type, role.type) &&
-                Objects.equal(active, role.active);
+                Objects.equal(type, role.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, userId, type, active);
+        return Objects.hashCode(id, userId, type);
     }
 
     @Override
@@ -71,7 +61,6 @@ public class Role {
                 .add("id", id)
                 .add("userId", userId)
                 .add("type", type)
-                .add("active", active)
                 .toString();
     }
 }

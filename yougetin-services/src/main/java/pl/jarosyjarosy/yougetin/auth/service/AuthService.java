@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import pl.jarosyjarosy.yougetin.auth.model.Identity;
 import pl.jarosyjarosy.yougetin.auth.model.LoginMessage;
 import pl.jarosyjarosy.yougetin.auth.model.Token;
-import pl.jarosyjarosy.yougetin.auth.repository.TokenRepository;
 import pl.jarosyjarosy.yougetin.user.model.Role;
 import pl.jarosyjarosy.yougetin.user.model.RoleType;
 import pl.jarosyjarosy.yougetin.user.model.User;
@@ -21,7 +21,6 @@ import pl.jarosyjarosy.yougetin.user.service.UserService;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -33,16 +32,16 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordService passwordService;
     private String accessSecretKey;
-    private TokenRepository tokenRepository;
+    private TokenService tokenService;
     private RoleRepository roleRepository;
 
     @Autowired
     public AuthService(UserRepository userRepository, PasswordService passwordService,
-                       TokenRepository tokenRepository, RoleRepository roleRepository,
+                       TokenService tokenService, RoleRepository roleRepository,
                        @Value("${auth.accessSecretKey}") String accessSecretKey) {
         this.userRepository = userRepository;
         this.passwordService = passwordService;
-        this.tokenRepository = tokenRepository;
+        this.tokenService = tokenService;
         this.roleRepository = roleRepository;
         this.accessSecretKey = accessSecretKey;
     }
@@ -69,7 +68,7 @@ public class AuthService {
                 .setIssuedAt(new Date())
                 .signWith(SignatureAlgorithm.HS256, accessSecretKey).compact();
 
-        storeToken(tokenValue, user.getId());
+        tokenService.storeToken(tokenValue, user.getId());
 
         Token token = new Token();
         token.setToken(tokenValue);
@@ -77,13 +76,10 @@ public class AuthService {
         return token;
     }
 
-    private void storeToken(String value, Long userId) {
-        LOGGER.info("LOGGER: saving token for user {}", userId);
-        Token token = new Token();
-        token.setUserId(userId);
-        token.setToken(value);
-        token.setModifyDate(Date.from(Instant.now()));
-
-        tokenRepository.save(token);
+    public void logout(Identity identity) {
+        tokenService.deleteOldTokens(identity.getUserId());
+        User user = userRepository.findById(identity.getUserId()).get();
+        user.setActive(false);
+        userRepository.save(user);
     }
 }
