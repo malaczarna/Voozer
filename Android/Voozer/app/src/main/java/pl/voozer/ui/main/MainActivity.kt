@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.location.Location
+import android.os.Handler
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -43,6 +44,7 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.navigation.NavigationView
+import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.content_main.*
 import pl.voozer.service.model.Destination
 import pl.voozer.service.model.Position
@@ -105,8 +107,13 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         for (driver in drivers) {
             placeDriverMarkerOnMap(LatLng(driver.lat, driver.lng))
         }
+        val mockDrivers = listOf(
+            User(id = 1, name = "Janusz", email = "janusz@gmail.com", password = "****", createDate = Date(), lat = 11.11, lng = 11.11, profile = Profile.DRIVER),
+            User(id = 1, name = "Janusz", email = "janusz@gmail.com", password = "****", createDate = Date(), lat = 11.11, lng = 11.11, profile = Profile.DRIVER),
+            User(id = 1, name = "Janusz", email = "janusz@gmail.com", password = "****", createDate = Date(), lat = 11.11, lng = 11.11, profile = Profile.DRIVER)
+        )
         rvDriversList.layoutManager = LinearLayoutManager(applicationContext)
-        rvDriversList.adapter = DriversAdapter(drivers = drivers, context = applicationContext, listener = object: DriversAdapter.OnItemClickListener {
+        rvDriversList.adapter = DriversAdapter(drivers = mockDrivers, context = applicationContext, listener = object: DriversAdapter.OnItemClickListener {
             override fun onDriverClick(driver: User) {
                 Toast.makeText(applicationContext, "Invite sent to driver!", Toast.LENGTH_LONG).show()
             }
@@ -186,12 +193,15 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         tvSearch.text = place.address
                         when (user.profile) {
                             Profile.PASSENGER -> {
-                                llDriversList.visibility = View.VISIBLE
                                 controller.loadDrivers()
-                                ObjectAnimator.ofFloat(llDriversList, "translationY", llHeaderBar.height.toFloat()).apply {
-                                    duration = 1000
-                                    start()
-                                }
+                                splDrivers.anchorPoint = 0.7f
+                                splDrivers.isTouchEnabled = false
+                                llSearchBar.isEnabled = false
+                                Handler().postDelayed(
+                                    {
+                                        splDrivers.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+                                    },300L
+                                )
                             }
                             Profile.DRIVER -> {
                                 btnAcceptDestination.isEnabled = true
@@ -225,6 +235,16 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         super.onPause()
         if(requestingLocationUpdates) {
             stopLocationUpdates()
+        }
+    }
+
+    override fun onBackPressed() {
+        if (splDrivers.panelState == SlidingUpPanelLayout.PanelState.ANCHORED) {
+            splDrivers.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
+            tvSearch.text = getString(R.string.search_bar_title)
+            llSearchBar.isEnabled = true
+        } else {
+            super.onBackPressed()
         }
     }
 

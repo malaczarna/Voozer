@@ -8,130 +8,124 @@
               android:orientation="vertical"
               tools:context=".ui.main.MainActivity">
 
-    <FrameLayout
+    <com.sothree.slidinguppanel.SlidingUpPanelLayout
+            xmlns:sothree="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/splDrivers"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        <fragment
-                android:id="@+id/map"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-        </fragment>
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            sothree:umanoScrollableView="@id/rvDriversList"
+            sothree:umanoInitialState="hidden"
+            sothree:umanoPanelHeight="0dp"
+            sothree:umanoShadowHeight="4dp">
 
         <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="200dp">
+                android:layout_height="match_parent">
 
-            <LinearLayout
-                    android:id="@+id/llAcceptDestination"
+            <fragment
+                    android:id="@+id/map"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
                     android:layout_width="match_parent"
-                    android:background="@android:color/white"
-                    android:layout_height="56dp">
+                    android:layout_height="match_parent">
 
-                <Button
-                        android:id="@+id/btnAcceptDestination"
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:background="@color/colorPrimary"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginEnd="16dp"
-                        android:enabled="false"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        android:textColor="@android:color/white"
-                        android:text="jedziemy!"/>
+            </fragment>
 
-            </LinearLayout>
-
-            <LinearLayout
-                    android:id="@+id/llDriversList"
+            <FrameLayout
                     android:layout_width="match_parent"
-                    android:background="@android:color/white"
-                    android:layout_marginBottom="16dp"
-                    android:visibility="gone"
-                    android:layout_height="120dp">
-
-                <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvDriversList"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-
-                </androidx.recyclerview.widget.RecyclerView>
-
-            </LinearLayout>
-
-            <LinearLayout
-                    android:id="@+id/llHeaderBar"
-                    android:paddingTop="16dp"
-                    android:paddingBottom="16dp"
-                    android:gravity="top|center"
-                    android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:orientation="vertical"
-                    android:background="@android:color/white">
-
-                <TextView
-                        android:id="@+id/tvUsername"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@android:color/black"/>
-
-                <View
-                        android:layout_width="match_parent"
-                        android:background="@android:color/black"
-                        android:alpha="0.5"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp"
-                        android:layout_height="1dp"/>
+                    android:layout_height="180dp">
 
                 <LinearLayout
-                        android:id="@+id/llSearchBar"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginEnd="16dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        android:background="@drawable/border"
+                        android:id="@+id/llAcceptDestination"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:background="@android:color/white"
+                        android:layout_height="56dp">
 
-                    <TextView
-                            android:id="@+id/tvSearch"
-                            android:text="@string/search_bar_title"
+                    <Button
+                            android:id="@+id/btnAcceptDestination"
                             android:layout_width="match_parent"
-                            android:textColor="@android:color/black"
-                            android:layout_marginTop="8dp"
+                            android:layout_height="40dp"
+                            android:background="@color/colorPrimary"
                             android:layout_marginStart="16dp"
-                            android:layout_marginBottom="8dp"
                             android:layout_marginEnd="16dp"
-                            android:layout_height="wrap_content"/>
+                            android:enabled="false"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:textColor="@android:color/white"
+                            android:text="jedziemy!"/>
 
                 </LinearLayout>
 
-            </LinearLayout>
+                <LinearLayout
+                        android:id="@+id/llHeaderBar"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp"
+                        android:gravity="top|center"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:orientation="vertical"
+                        android:background="@android:color/white">
 
-        </FrameLayout>
+                    <TextView
+                            android:id="@+id/tvUsername"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@android:color/black"/>
 
-        <LinearLayout
-                android:layout_gravity="bottom"
-                android:layout_margin="16dp"
-                android:layout_width="match_parent"
-                android:orientation="vertical"
-                android:gravity="end"
-                android:layout_height="wrap_content">
+                    <View
+                            android:layout_width="match_parent"
+                            android:background="@android:color/black"
+                            android:alpha="0.5"
+                            android:layout_marginTop="16dp"
+                            android:layout_marginBottom="16dp"
+                            android:layout_height="1dp"/>
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fabCancelRide"
-                    style="@style/Widget.MaterialComponents.FloatingActionButton"
-                    app:backgroundTint="@android:color/holo_red_dark"
-                    android:src="@drawable/ic_times"
+                    <LinearLayout
+                            android:id="@+id/llSearchBar"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginEnd="16dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:background="@drawable/border"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                        <TextView
+                                android:id="@+id/tvSearch"
+                                android:text="@string/search_bar_title"
+                                android:layout_width="match_parent"
+                                android:textColor="@android:color/black"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginStart="16dp"
+                                android:layout_marginBottom="8dp"
+                                android:layout_marginEnd="16dp"
+                                android:layout_height="wrap_content"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <LinearLayout
+                    android:layout_gravity="bottom"
                     android:layout_margin="16dp"
-                    android:visibility="gone"
-                    android:alpha="0"
-                    android:tint="@android:color/white"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_width="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="end"
+                    android:layout_height="wrap_content">
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fabCancelRide"
+                        style="@style/Widget.MaterialComponents.FloatingActionButton"
+                        app:backgroundTint="@android:color/holo_red_dark"
+                        android:src="@drawable/ic_times"
+                        android:layout_margin="16dp"
+                        android:visibility="gone"
+                        android:alpha="0"
+                        android:tint="@android:color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                         android:id="@+id/fabMyPosition"
@@ -143,8 +137,38 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
 
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center|top"
+                android:orientation="vertical">
+
+            <TextView
+                    android:text="@string/drivers_list_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAlignment="textStart"
+                    android:textColor="@android:color/black"
+                    android:textSize="26sp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="21dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvDriversList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+            </androidx.recyclerview.widget.RecyclerView>
+
         </LinearLayout>
 
-    </FrameLayout>
+    </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 
 </LinearLayout>
