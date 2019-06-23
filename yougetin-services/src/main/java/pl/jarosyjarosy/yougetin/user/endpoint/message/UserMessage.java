@@ -1,6 +1,7 @@
 package pl.jarosyjarosy.yougetin.user.endpoint.message;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import pl.jarosyjarosy.yougetin.destination.model.Destination;
 import pl.jarosyjarosy.yougetin.user.model.Profile;
 
 import java.util.Date;
@@ -16,7 +17,7 @@ public class UserMessage {
     private Date createDate;
     private Date lastActivity;
     private Boolean active;
-    private Long destinationId;
+    private Destination destination;
     private Boolean blocked;
 
     private Double lat;
@@ -82,12 +83,12 @@ public class UserMessage {
         this.active = active;
     }
 
-    public Long getDestinationId() {
-        return destinationId;
+    public Destination getDestination() {
+        return destination;
     }
 
-    public void setDestinationId(Long destinationId) {
-        this.destinationId = destinationId;
+    public void setDestination(Destination destination) {
+        this.destination = destination;
     }
 
     public Boolean getBlocked() {
