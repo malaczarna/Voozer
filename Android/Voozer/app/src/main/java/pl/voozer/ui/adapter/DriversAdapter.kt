@@ -26,12 +26,14 @@ class DriversAdapter(val drivers: List<User>, val context: Context, val listener
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.tvDriverName.text = drivers[position].name
+        holder.tvDriverDestination.text = drivers[position].destination.name
         holder.bind(driver = drivers[position], listener = listener)
 
     }
 
     class ViewHolder (view: View) : RecyclerView.ViewHolder(view) {
         val tvDriverName = view.tvDriverName
+        val tvDriverDestination = view.tvDriverDestination
         val llDriver = view.llDriver
 
         fun bind(driver: User, listener: OnItemClickListener) {

@@ -13,9 +13,6 @@ import android.location.Location
 import android.os.Handler
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
-import android.view.animation.AlphaAnimation
-import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -107,15 +104,11 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         for (driver in drivers) {
             placeDriverMarkerOnMap(LatLng(driver.lat, driver.lng))
         }
-        val mockDrivers = listOf(
-            User(id = 1, name = "Janusz", email = "janusz@gmail.com", password = "****", createDate = Date(), lat = 11.11, lng = 11.11, profile = Profile.DRIVER),
-            User(id = 1, name = "Janusz", email = "janusz@gmail.com", password = "****", createDate = Date(), lat = 11.11, lng = 11.11, profile = Profile.DRIVER),
-            User(id = 1, name = "Janusz", email = "janusz@gmail.com", password = "****", createDate = Date(), lat = 11.11, lng = 11.11, profile = Profile.DRIVER)
-        )
         rvDriversList.layoutManager = LinearLayoutManager(applicationContext)
-        rvDriversList.adapter = DriversAdapter(drivers = mockDrivers, context = applicationContext, listener = object: DriversAdapter.OnItemClickListener {
+        rvDriversList.adapter = DriversAdapter(drivers = drivers, context = applicationContext, listener = object: DriversAdapter.OnItemClickListener {
             override fun onDriverClick(driver: User) {
-                Toast.makeText(applicationContext, "Invite sent to driver!", Toast.LENGTH_LONG).show()
+                splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(driver.lat, driver.lng), 12f))
             }
         })
     }
@@ -195,8 +188,11 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                             Profile.PASSENGER -> {
                                 controller.loadDrivers()
                                 splDrivers.anchorPoint = 0.7f
-                                splDrivers.isTouchEnabled = false
-                                llSearchBar.isEnabled = false
+                                splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+                                ObjectAnimator.ofFloat(llFabButtons, "translationY", -splDrivers.panelHeight.toFloat()).apply {
+                                    duration = 300
+                                    start()
+                                }
                                 Handler().postDelayed(
                                     {
                                         splDrivers.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
@@ -239,12 +235,24 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     }
 
     override fun onBackPressed() {
-        if (splDrivers.panelState == SlidingUpPanelLayout.PanelState.ANCHORED) {
-            splDrivers.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
-            tvSearch.text = getString(R.string.search_bar_title)
-            llSearchBar.isEnabled = true
-        } else {
-            super.onBackPressed()
+        when {
+            splDrivers.panelState == SlidingUpPanelLayout.PanelState.EXPANDED -> {
+                splDrivers.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+            }
+            splDrivers.panelState == SlidingUpPanelLayout.PanelState.ANCHORED -> {
+                splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+            }
+            splDrivers.panelState == SlidingUpPanelLayout.PanelState.COLLAPSED -> {
+                removeMarkers()
+                tvSearch.text = getString(R.string.search_bar_title)
+                splDrivers.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
+                ObjectAnimator.ofFloat(llFabButtons, "translationY", 0f).apply {
+                    duration = 1000
+                    start()
+                }
+                llSearchBar.isEnabled = true
+            }
+            else -> super.onBackPressed()
         }
     }
 
@@ -375,6 +383,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private fun initLayout() {
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         navView = findViewById(R.id.nav_view)
         val toggle = ActionBarDrawerToggle(

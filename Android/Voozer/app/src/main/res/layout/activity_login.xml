@@ -1,76 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:background="@color/colorPrimary"
-              android:gravity="center">
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+                                       xmlns:app="http://schemas.android.com/apk/res-auto"
+                                       android:orientation="vertical"
+                                       android:layout_width="match_parent"
+                                       android:layout_height="match_parent"
+                                       android:background="@color/colorPrimary">
 
-    <ImageView
-            android:layout_width="300dp"
-            android:layout_height="150dp"
-            android:src="@drawable/main_logo"
-            android:layout_marginBottom="20dp"/>
-
-    <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilEmail"
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            app:hintEnabled="true">
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:orientation="vertical">
 
-        <EditText
+        <ImageView
+                android:layout_width="300dp"
+                android:layout_height="150dp"
+                android:src="@drawable/main_logo"
+                android:layout_marginBottom="20dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="E-mail"
-                android:inputType="textEmailAddress"
-                android:textColor="@android:color/white"
-                android:text="k.spychala95@gmail.com"/>
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                app:hintEnabled="true">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="E-mail"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@android:color/white"
+                    android:text="k.spychala95@gmail.com"/>
 
-    <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            app:hintEnabled="true">
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Hasło"
-                android:inputType="textPassword"
-                android:textColor="@android:color/white"
-                android:text="test12"/>
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                app:hintEnabled="true">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Hasło"
+                    android:inputType="textPassword"
+                    android:textColor="@android:color/white"
+                    android:text="test12"/>
 
-    <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginTop="10dp"
-            android:backgroundTint="@color/colorPrimaryDark"
-            android:clickable="true"
-            android:focusable="true"
-            android:text="ZALOGUJ"
-            android:textColor="@android:color/white"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
-            android:id="@+id/btnRedirectToRegister"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginTop="10dp"
-            android:background="@android:color/transparent"
-            android:text="Nie masz jeszcze konta? Tapnij tutaj!"
-            android:textColor="@android:color/white" />
+        <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="ZALOGUJ"
+                android:textColor="@android:color/white"/>
 
-</LinearLayout>
+        <Button
+                android:id="@+id/btnRedirectToRegister"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="10dp"
+                android:background="@android:color/transparent"
+                android:text="Nie masz jeszcze konta? Tapnij tutaj!"
+                android:textColor="@android:color/white" />
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

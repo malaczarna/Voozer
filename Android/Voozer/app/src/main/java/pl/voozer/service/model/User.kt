@@ -14,6 +14,8 @@ data class User(
     val password: String,
     @SerializedName("createDate")
     val createDate: Date,
+    @SerializedName("destination")
+    val destination: Destination,
     @SerializedName("lat")
     val lat: Double,
     @SerializedName("lng")
