@@ -9,6 +9,7 @@ import android.animation.ObjectAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.location.Location
 import android.os.Handler
 import android.util.Log
@@ -30,10 +31,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.TypeFilter
@@ -41,14 +39,17 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.navigation.NavigationView
+import com.google.maps.android.PolyUtil
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.content_main.*
 import pl.voozer.service.model.Destination
 import pl.voozer.service.model.Position
 import pl.voozer.service.model.Profile
 import pl.voozer.service.model.User
+import pl.voozer.service.model.direction.Direction
 import pl.voozer.service.network.Connection
 import pl.voozer.ui.adapter.DriversAdapter
+import pl.voozer.utils.DIRECTIONS_URL
 import pl.voozer.utils.SharedPreferencesHelper
 import java.util.*
 
@@ -142,6 +143,20 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
     }
 
+    override fun setRoute(direction: Direction) {
+        val options = PolylineOptions()
+        options.color(ContextCompat.getColor(applicationContext, R.color.colorPrimaryDriver))
+        options.width(5f)
+        val points = direction.routes[0].legs[0].steps
+        val polyPoints = points.flatMap { PolyUtil.decode(it.polyline.points) }
+        for(point in polyPoints) {
+            options.add(point)
+            Log.d("Directions API: ", "$point")
+        }
+        googleMap.addPolyline(options)
+        Log.d("Directions API: ", "${direction.routes[0].summary}")
+    }
+
     override fun getLayoutResId(): Int {
         return R.layout.activity_main
     }
@@ -205,6 +220,12 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                                     duration = 1000
                                     start()
                                 }
+                                controller.loadDirection(
+                                    api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
+                                    origin = "${lastLocation.latitude},${lastLocation.longitude}",
+                                    destination = "${destination.lat},${destination.lng}",
+                                    key = ""
+                                )
                             }
                         }
                     }

@@ -50,9 +50,9 @@ class Connection {
                 this.okHttpClient = client.build()
             }
 
-            fun provideRetrofit() = apply {
+            fun provideRetrofit(url: String = BASE_URL) = apply {
                 retrofit = Retrofit.Builder()
-                    .baseUrl(BASE_URL)
+                    .baseUrl(url)
                     .addConverterFactory(GsonConverterFactory.create(
                         GsonBuilder().setDateFormat(DateFormat.FULL).create()))
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
