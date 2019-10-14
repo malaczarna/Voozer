@@ -61,4 +61,6 @@ public class DestinationMessage {
     public void setLng(Double lng) {
         this.lng = lng;
     }
+
+
 }

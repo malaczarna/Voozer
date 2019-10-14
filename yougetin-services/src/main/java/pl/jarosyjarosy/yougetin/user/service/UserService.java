@@ -90,7 +90,7 @@ public class UserService {
     }
 
     public Position getUserPosition(Long id) {
-        LOGGER.info("LOGGER: get user {} position", id);
+        LOGGER.info("LOGGER: get user {} routepoint", id);
         User user = get(id);
         Position userPosition = new Position();
 
@@ -102,7 +102,7 @@ public class UserService {
 
     @Transactional
     public User setUserPosition(Long id, Position position) {
-        LOGGER.info("LOGGER: set user {} position", id);
+        LOGGER.info("LOGGER: set user {} routepoint", id);
         User user = get(id);
 
         user.setLat(position.getLat());
@@ -168,6 +168,13 @@ public class UserService {
         User user = get(id);
         user.setDestinationId(-1L);
         return userRepository.save(user);
+    }
+
+    public List<User> getDriversInRadius(Long id) {
+        Position userPosition = getUserPosition(id);
+        List<User> drivers = getActiveDrivers();
+
+        return drivers;
     }
 
 }
