@@ -1,5 +1,12 @@
 package pl.jarosyjarosy.yougetin.user.service;
 
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.GeodeticCalculator;
+import org.locationtech.jts.geom.Coordinate;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +22,7 @@ import pl.jarosyjarosy.yougetin.user.repository.UserRepository;
 
 import javax.transaction.Transactional;
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -170,11 +178,24 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public List<User> getDriversInRadius(Long id) {
+    public List<User> getDriversInRadiusInMeters(Long id, Double radius) throws FactoryException, TransformException {
         Position userPosition = getUserPosition(id);
-        List<User> drivers = getActiveDrivers();
 
-        return drivers;
+        List<User> driversInRadius = new ArrayList<>();
+
+        CoordinateReferenceSystem crs = CRS.decode("EPSG:4326");
+
+        GeodeticCalculator gc = new GeodeticCalculator(crs);
+        gc.setStartingPosition(JTS.toDirectPosition(new Coordinate(userPosition.getLng(), userPosition.getLat()), crs));
+
+        for (User driver : getActiveDrivers()) {
+            gc.setDestinationPosition(JTS.toDirectPosition(new Coordinate(driver.getLng(), driver.getLat()), crs));
+            if (gc.getOrthodromicDistance() < radius) {
+                driversInRadius.add(driver);
+            }
+        }
+
+        return driversInRadius;
     }
 
 }
