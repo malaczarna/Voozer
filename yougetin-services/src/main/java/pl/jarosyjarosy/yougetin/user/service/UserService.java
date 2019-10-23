@@ -29,6 +29,7 @@ import java.util.List;
 @Component
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
+    private static final String EPSG4326 = "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.01745329251994328,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]";
 
     private UserRepository userRepository;
     private UserValidationService userValidationService;
@@ -179,11 +180,13 @@ public class UserService {
     }
 
     public List<User> getDriversInRadiusInMeters(Long id, Double radius) throws FactoryException, TransformException {
+        LOGGER.info("LOGGER: get active drivers in {} radius", radius);
         Position userPosition = getUserPosition(id);
 
         List<User> driversInRadius = new ArrayList<>();
 
-        CoordinateReferenceSystem crs = CRS.decode("EPSG:4326");
+//        CoordinateReferenceSystem crs = CRS.decode("EPSG:4326");
+        CoordinateReferenceSystem crs = CRS.parseWKT(EPSG4326);
 
         GeodeticCalculator gc = new GeodeticCalculator(crs);
         gc.setStartingPosition(JTS.toDirectPosition(new Coordinate(userPosition.getLng(), userPosition.getLat()), crs));
