@@ -56,6 +56,8 @@ public class DestinationController {
 
         Destination newDestination = destinationService.validateAndCreate(destinationMapperService.mapDestinationMessage(destinationMessage), new Identity(request).getUserId());
 
+        routePointService.saveRoute(routePointMapperService.mapRouteMesage(destinationMessage.getRoute(), newDestination.getId()));
+
         return destinationMapperService.mapDestination(newDestination);
     }
 
