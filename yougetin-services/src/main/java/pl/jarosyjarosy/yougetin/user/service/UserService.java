@@ -150,6 +150,7 @@ public class UserService {
     @Transactional
     public void setUserAsInactive(User user) {
         user.setActive(false);
+        user.setDestinationId(-1L);
         userRepository.save(user);
     }
     @Transactional
@@ -193,6 +194,7 @@ public class UserService {
 
         for (User driver : getActiveDrivers()) {
             gc.setDestinationPosition(JTS.toDirectPosition(new Coordinate(driver.getLng(), driver.getLat()), crs));
+            LOGGER.info("LOGGER: get active drivers in {} radius - actual driver id {}: {} m", radius, driver.getId(), gc.getOrthodromicDistance());
             if (gc.getOrthodromicDistance() < radius) {
                 driversInRadius.add(driver);
             }
