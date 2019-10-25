@@ -1,8 +1,10 @@
 package pl.jarosyjarosy.yougetin.destination.endpoint.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
 
 import java.util.Date;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class DestinationMessage {
@@ -13,6 +15,7 @@ public class DestinationMessage {
     private Date createDate;
     private Double lat;
     private Double lng;
+    private List<Position> route;
 
     public Long getId() {
         return id;
@@ -60,5 +63,13 @@ public class DestinationMessage {
 
     public void setLng(Double lng) {
         this.lng = lng;
+    }
+
+    public List<Position> getRoute() {
+        return route;
+    }
+
+    public void setRoute(List<Position> route) {
+        this.route = route;
     }
 }

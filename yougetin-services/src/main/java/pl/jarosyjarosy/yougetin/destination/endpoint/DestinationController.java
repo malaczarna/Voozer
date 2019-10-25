@@ -7,6 +7,9 @@ import pl.jarosyjarosy.yougetin.destination.endpoint.model.DestinationMessage;
 import pl.jarosyjarosy.yougetin.destination.model.Destination;
 import pl.jarosyjarosy.yougetin.destination.service.DestinationMapperService;
 import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
+import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointMapperService;
+import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
+import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
 
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,13 +22,19 @@ public class DestinationController {
 
     private DestinationService destinationService;
     private DestinationMapperService destinationMapperService;
+    private final RoutePointMapperService routePointMapperService;
+    private final RoutePointService routePointService;
 
     @Autowired
     public DestinationController(DestinationService destinationService,
-                                 DestinationMapperService destinationMapperService) {
+                                 DestinationMapperService destinationMapperService,
+                                 RoutePointMapperService routePointMapperService,
+                                 RoutePointService routePointService) {
 
         this.destinationService = destinationService;
         this.destinationMapperService = destinationMapperService;
+        this.routePointMapperService = routePointMapperService;
+        this.routePointService = routePointService;
     }
 
     @RequestMapping(
@@ -47,6 +56,8 @@ public class DestinationController {
 
         Destination newDestination = destinationService.validateAndCreate(destinationMapperService.mapDestinationMessage(destinationMessage), new Identity(request).getUserId());
 
+        routePointService.saveRoute(routePointMapperService.mapRouteMesage(destinationMessage.getRoute(), newDestination.getId()));
+
         return destinationMapperService.mapDestination(newDestination);
     }
 
@@ -60,4 +71,27 @@ public class DestinationController {
                 .map(destinationMapperService::mapDestination)
                 .collect(Collectors.toList());
     }
+
+    @RequestMapping(
+            value = "/{id}/route",
+            method = RequestMethod.GET,
+            produces = "application/json"
+    )
+    public List<Position> getRoute(@PathVariable Long id, HttpServletRequest request) {
+
+        return routePointMapperService.mapRoute(routePointService.getRoute(id));
+    }
+
+    @RequestMapping(
+            value = "/{id}/route",
+            method = RequestMethod.POST,
+            consumes = "application/json",
+            produces = "application/json"
+    )
+    public List<Position> saveRoute(@PathVariable Long id, @RequestBody List<Position> positions, HttpServletRequest request) {
+
+        return routePointMapperService.mapRoute(routePointService.saveRoute(routePointMapperService.mapRouteMesage(positions, id)));
+
+    }
+
 }

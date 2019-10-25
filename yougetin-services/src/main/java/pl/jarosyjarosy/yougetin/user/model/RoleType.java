@@ -1,7 +1,5 @@
 package pl.jarosyjarosy.yougetin.user.model;
 
-import java.util.EnumSet;
-
 public enum RoleType {
     PASSENGER("Pasażer"),
     DRIVER("Kierowca");

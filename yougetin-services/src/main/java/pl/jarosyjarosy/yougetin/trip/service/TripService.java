@@ -1,13 +1,12 @@
-package pl.jarosyjarosy.yougetin.trips.service;
+package pl.jarosyjarosy.yougetin.trip.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
-import pl.jarosyjarosy.yougetin.trips.model.Trip;
-import pl.jarosyjarosy.yougetin.trips.repository.TripRepository;
-import pl.jarosyjarosy.yougetin.user.service.UserService;
+import pl.jarosyjarosy.yougetin.trip.model.Trip;
+import pl.jarosyjarosy.yougetin.trip.repository.TripRepository;
 
 import javax.transaction.Transactional;
 import java.sql.Date;
@@ -47,12 +46,12 @@ public class TripService {
     }
 
     public List<Trip> getByDriverId(Long id) {
-        LOGGER.info("LOGGER: get trips for driver {}", id);
+        LOGGER.info("LOGGER: get trip for driver {}", id);
         return tripRepository.findAllByDriverId(id);
     }
 
     public List<Trip> getByPassengerId(Long id) {
-        LOGGER.info("LOGGER: get trips for passenger {}", id);
+        LOGGER.info("LOGGER: get trip for passenger {}", id);
         return tripRepository.findAllByPassengerId(id);
     }
 }
