@@ -77,8 +77,8 @@ class MainController : BaseController<MainView>() {
     }
 
     @SuppressLint("CheckResult")
-    fun loadDrivers() {
-        api.getDrivers()
+    fun loadDrivers(radius: Double) {
+        api.getDrivers(radius = radius)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(

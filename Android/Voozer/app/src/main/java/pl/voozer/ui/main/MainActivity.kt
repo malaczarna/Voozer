@@ -42,6 +42,7 @@ import com.google.android.material.navigation.NavigationView
 import com.google.maps.android.PolyUtil
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.content_main.*
+import pl.voozer.BuildConfig
 import pl.voozer.service.model.Destination
 import pl.voozer.service.model.Position
 import pl.voozer.service.model.Profile
@@ -49,8 +50,7 @@ import pl.voozer.service.model.User
 import pl.voozer.service.model.direction.Direction
 import pl.voozer.service.network.Connection
 import pl.voozer.ui.adapter.DriversAdapter
-import pl.voozer.utils.DIRECTIONS_URL
-import pl.voozer.utils.SharedPreferencesHelper
+import pl.voozer.utils.*
 import java.util.*
 
 class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapReadyCallback,
@@ -63,12 +63,16 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private lateinit var locationCallback: LocationCallback
     private lateinit var lastLocation: Location
     private lateinit var destination: Destination
+    private lateinit var place: Place
+    private lateinit var latLngPoints: List<LatLng>
     private var requestingLocationUpdates: Boolean = false
+    private var isDestinationReloadNeeded = false
     private lateinit var user: User
     private lateinit var toolbar: Toolbar
     private lateinit var navView: NavigationView
     private var fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
     private val AUTOCOMPLETE_REQUEST_CODE = 1
+    private var lastRoute: Polyline? = null
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
@@ -144,17 +148,18 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     }
 
     override fun setRoute(direction: Direction) {
+        lastRoute?.remove()
         val options = PolylineOptions()
         options.color(ContextCompat.getColor(applicationContext, R.color.colorPrimaryDriver))
         options.width(5f)
         val points = direction.routes[0].legs[0].steps
-        val polyPoints = points.flatMap { PolyUtil.decode(it.polyline.points) }
-        for(point in polyPoints) {
+        latLngPoints = points.flatMap { PolyUtil.decode(it.polyline.points) }
+        val route = latLngPoints.map { Position(lat = it.latitude, lng = it.longitude) }
+        for(point in latLngPoints) {
             options.add(point)
-            Log.d("Directions API: ", "$point")
         }
-        googleMap.addPolyline(options)
-        Log.d("Directions API: ", "${direction.routes[0].summary}")
+        lastRoute = googleMap.addPolyline(options)
+        destination = Destination(name = place.name!!, lat = place.latLng!!.latitude, lng = place.latLng!!.longitude, route = route)
     }
 
     override fun getLayoutResId(): Int {
@@ -195,13 +200,18 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
                 when (resultCode) {
                     RESULT_OK -> {
-                        val place = Autocomplete.getPlaceFromIntent(data)
-                        destination = Destination(name = place.name!!, lat = place.latLng!!.latitude, lng = place.latLng!!.longitude)
+                        place = Autocomplete.getPlaceFromIntent(data)
                         place.latLng?.let { placeDestinationMarkerOnMap(it) }
                         tvSearch.text = place.address
+                        controller.loadDirection(
+                            api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
+                            origin = "${lastLocation.latitude},${lastLocation.longitude}",
+                            destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                            key = BuildConfig.GOOGLE_API_KEY
+                        )
                         when (user.profile) {
                             Profile.PASSENGER -> {
-                                controller.loadDrivers()
+                                controller.loadDrivers(radius = RADIUS)
                                 splDrivers.anchorPoint = 0.7f
                                 splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
                                 ObjectAnimator.ofFloat(llFabButtons, "translationY", -splDrivers.panelHeight.toFloat()).apply {
@@ -220,12 +230,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                                     duration = 1000
                                     start()
                                 }
-                                controller.loadDirection(
-                                    api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
-                                    origin = "${lastLocation.latitude},${lastLocation.longitude}",
-                                    destination = "${destination.lat},${destination.lng}",
-                                    key = ""
-                                )
                             }
                         }
                     }
@@ -285,7 +289,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             false -> {
                 setTheme(R.style.AppThemeDriver)
             }
-
         }
         super.onCreate(savedInstanceState)
         initLayout()
@@ -349,7 +352,22 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult ?: return
                 for (location in locationResult.locations){
-                    controller.sendPosition(Position(location.latitude, location.longitude))
+                    if (!PolyUtil.isLocationOnPath(LatLng(location.latitude, location.longitude), latLngPoints, false, TOLERANCE)) {
+                        isDestinationReloadNeeded = true
+                        controller.loadDirection(
+                            api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
+                            origin = "${lastLocation.latitude},${lastLocation.longitude}",
+                            destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                            key = BuildConfig.GOOGLE_API_KEY
+                        )
+                    } else {
+                        if (isDestinationReloadNeeded) {
+                            controller.setDestination(destination)
+                            isDestinationReloadNeeded = false
+                        } else {
+                            controller.sendPosition(Position(location.latitude, location.longitude))
+                        }
+                    }
                 }
             }
         }
@@ -423,12 +441,13 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         ).metaData.getString(
             "com.google.android.geo.API_KEY"
         )
-        Places.initialize(applicationContext, apiKey)
+        Places.initialize(applicationContext, apiKey!!)
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest()
-        locationRequest.interval = 10
+        locationRequest.interval = INTERVAL
+        locationRequest.fastestInterval = INTERVAL
     }
 
     private fun startLocationUpdates() {
