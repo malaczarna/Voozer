@@ -13,11 +13,7 @@ public class RoutePointMapperService {
     public List<RoutePoint> mapRouteMesage(List<Position> positions, Long destinationId) {
         List<RoutePoint> routePoints = new ArrayList<>();
         for (Position position: positions) {
-            RoutePoint newRoutePoint = new RoutePoint();
-            newRoutePoint.setDestinationId(destinationId);
-            newRoutePoint.setLat(position.getLat());
-            newRoutePoint.setLng(position.getLng());
-
+            RoutePoint newRoutePoint = new RoutePoint(position.getLat(), position.getLng(), destinationId);
             routePoints.add(newRoutePoint);
         }
 
@@ -28,9 +24,7 @@ public class RoutePointMapperService {
         List<Position> positions = new ArrayList<>();
         if (routePoints != null && !routePoints.isEmpty()) {
             for (RoutePoint routePoint: routePoints) {
-                Position position = new Position();
-                position.setLat(routePoint.getLat());
-                position.setLng(routePoint.getLng());
+                Position position = new Position(routePoint.getLat(), routePoint.getLng());
                 positions.add(position);
             }
         }

@@ -19,4 +19,9 @@ public class Position {
     public void setLng(Double lng) {
         Lng = lng;
     }
+
+    public Position(Double lat, Double lng) {
+        Lat = lat;
+        Lng = lng;
+    }
 }

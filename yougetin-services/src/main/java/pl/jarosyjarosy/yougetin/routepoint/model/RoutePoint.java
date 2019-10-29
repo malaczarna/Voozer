@@ -44,4 +44,10 @@ public class RoutePoint {
     public void setDestinationId(Long destinationId) {
         this.destinationId = destinationId;
     }
+
+    public RoutePoint(Double lat, Double lng, Long destinationId) {
+        Lat = lat;
+        Lng = lng;
+        this.destinationId = destinationId;
+    }
 }
