@@ -2,6 +2,7 @@ package pl.voozer.service.network
 
 import io.reactivex.Observable
 import pl.voozer.service.model.*
+import pl.voozer.service.model.direction.Direction
 import retrofit2.http.*
 
 interface Api {
@@ -35,4 +36,9 @@ interface Api {
 
     @GET("users/active/drivers")
     fun getDrivers(): Observable<List<User>>
+
+    @GET("maps/api/directions/json")
+    fun getDirections(@Query("origin") origin: String,
+                      @Query("destination") destination: String,
+                      @Query("key") key: String): Observable<Direction>
 }

@@ -15,7 +15,11 @@ configurations {
 }
 
 repositories {
-	mavenCentral()
+//    maven { url "http://download.java.net/maven/2" }
+    maven { url "http://repo.boundlessgeo.com/main" }
+    maven { url "http://maven.geotoolkit.org" }
+    maven { url "http://download.osgeo.org/webdav/geotools/" }
+    mavenCentral()
 }
 
 dependencies {
@@ -32,5 +36,13 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '20.0'
     
     compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+
+
+    providedCompile group: 'javax', name: 'javaee-api', version: '8.0'
+
+    compile group: 'org.geotools', name: 'gt-shapefile', version: '22.0'
+    compile group: 'org.geotools', name: 'gt-swing', version: '22.0'
+    testCompile group: 'org.geotools', name: 'gt-epsg-hsql', version: '22.0'
+
 
 }

@@ -6,6 +6,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import pl.voozer.service.model.Destination
 import pl.voozer.service.model.Position
+import pl.voozer.service.network.Api
 import pl.voozer.ui.base.BaseController
 
 class MainController : BaseController<MainView>() {
@@ -95,6 +96,19 @@ class MainController : BaseController<MainView>() {
             .subscribeOn(Schedulers.io())
             .subscribe(
                 {},
+                { error: Throwable ->
+                    Log.d("Error", error.localizedMessage)
+                }
+            )
+    }
+
+    @SuppressLint("CheckResult")
+    fun loadDirection(api: Api, origin: String, destination: String, key: String) {
+        api.getDirections(origin = origin, destination = destination, key = key)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                { direction -> view.setRoute(direction)},
                 { error: Throwable ->
                     Log.d("Error", error.localizedMessage)
                 }

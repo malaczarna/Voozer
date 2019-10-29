@@ -1,9 +1,9 @@
-package pl.jarosyjarosy.yougetin.trips.service;
+package pl.jarosyjarosy.yougetin.trip.service;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
-import pl.jarosyjarosy.yougetin.trips.endpoint.model.TripMessage;
-import pl.jarosyjarosy.yougetin.trips.model.Trip;
+import pl.jarosyjarosy.yougetin.trip.endpoint.model.TripMessage;
+import pl.jarosyjarosy.yougetin.trip.model.Trip;
 
 @Component
 public class TripMapperService {

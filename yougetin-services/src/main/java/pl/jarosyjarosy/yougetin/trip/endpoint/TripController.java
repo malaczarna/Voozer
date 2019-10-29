@@ -1,16 +1,14 @@
-package pl.jarosyjarosy.yougetin.trips.endpoint;
+package pl.jarosyjarosy.yougetin.trip.endpoint;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.jarosyjarosy.yougetin.auth.model.Identity;
-import pl.jarosyjarosy.yougetin.trips.endpoint.model.TripMessage;
-import pl.jarosyjarosy.yougetin.trips.model.Trip;
-import pl.jarosyjarosy.yougetin.trips.service.TripMapperService;
-import pl.jarosyjarosy.yougetin.trips.service.TripService;
+import pl.jarosyjarosy.yougetin.trip.endpoint.model.TripMessage;
+import pl.jarosyjarosy.yougetin.trip.model.Trip;
+import pl.jarosyjarosy.yougetin.trip.service.TripMapperService;
+import pl.jarosyjarosy.yougetin.trip.service.TripService;
 
 import javax.servlet.http.HttpServletRequest;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -1,5 +1,7 @@
 package pl.jarosyjarosy.yougetin.user.endpoint;
 
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.operation.TransformException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.jarosyjarosy.yougetin.auth.model.Identity;
@@ -127,6 +129,18 @@ public class UserController {
     public UserMessage stopDestination(HttpServletRequest request) {
 
         return userMapperService.mapUser(userService.stopDestination(new Identity(request).getUserId()));
+    }
+
+    @RequestMapping(
+            value = "active/drivers/get-in-radius-command",
+            method = RequestMethod.POST,
+            produces = "application/json"
+    )
+    public List<UserMessage> getActiveDriversInRadius(@RequestBody Double radius, HttpServletRequest request) throws FactoryException,TransformException {
+
+        return userService.getDriversInRadiusInMeters(new Identity(request).getUserId(), radius).stream()
+                .map(userMapperService::mapUser)
+                .collect(Collectors.toList());
     }
 
 
