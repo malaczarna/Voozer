@@ -34,8 +34,11 @@ interface Api {
     @POST("users/stop-destination-command")
     fun stopDestination(): Observable<Unit?>
 
-    @GET("users/active/drivers")
-    fun getDrivers(): Observable<List<User>>
+//    @GET("users/active/drivers")
+//    fun getDrivers(): Observable<List<User>>
+
+    @POST("users/active/drivers/get-in-radius-command")
+    fun getDrivers(@Body radius: Double): Observable<List<User>>
 
     @GET("maps/api/directions/json")
     fun getDirections(@Query("origin") origin: String,

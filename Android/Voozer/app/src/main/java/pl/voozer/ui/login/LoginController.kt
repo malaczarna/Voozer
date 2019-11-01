@@ -15,9 +15,9 @@ class LoginController : BaseController<LoginView>() {
 
     lateinit var sharedPreferences: SharedPreferences
 
-    private fun saveToken(token: Auth){
+    private fun saveToken(auth: Auth){
         val editor = sharedPreferences.edit()
-        editor.putString("token", "Bearer ${token.token}")
+        editor.putString("token", "Bearer ${auth.token}")
         editor.apply()
     }
 
