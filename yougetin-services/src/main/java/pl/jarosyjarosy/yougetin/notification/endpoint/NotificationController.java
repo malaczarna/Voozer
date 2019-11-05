@@ -1,5 +1,7 @@
 package pl.jarosyjarosy.yougetin.notification.endpoint;
 
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.operation.TransformException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.jarosyjarosy.yougetin.notification.endpoint.model.NotificationMessage;
@@ -37,7 +39,7 @@ public class NotificationController {
             method = RequestMethod.POST,
             produces = "application/json"
     )
-    public NotificationMessage create(@RequestBody NotificationMessage notificationMessage, HttpServletRequest request) {
+    public NotificationMessage create(@RequestBody NotificationMessage notificationMessage, HttpServletRequest request) throws TransformException, FactoryException {
 
         return notificationMapperService.mapNotification(notificationService.create(notificationMapperService.mapNotificationMessage(notificationMessage)));
     }
