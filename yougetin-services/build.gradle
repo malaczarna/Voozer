@@ -7,7 +7,7 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'war'
 
 group = 'pl.jarosyjarosy'
-version = '0.0.2'
+version = '0.0.5'
 sourceCompatibility = '1.8'
 
 configurations {
@@ -36,13 +36,12 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '20.0'
     
     compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
-
-
+    
     providedCompile group: 'javax', name: 'javaee-api', version: '8.0'
 
     compile group: 'org.geotools', name: 'gt-shapefile', version: '22.0'
     compile group: 'org.geotools', name: 'gt-swing', version: '22.0'
     testCompile group: 'org.geotools', name: 'gt-epsg-hsql', version: '22.0'
 
-
+    compile group: 'com.google.firebase', name: 'firebase-admin', version: '6.11.0'
 }

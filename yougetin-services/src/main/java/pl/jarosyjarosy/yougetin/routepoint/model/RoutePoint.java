@@ -8,8 +8,8 @@ public class RoutePoint {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private Double Lat;
-    private Double Lng;
+    private Double lat;
+    private Double lng;
 
     private Long destinationId;
 
@@ -22,19 +22,19 @@ public class RoutePoint {
     }
 
     public Double getLat() {
-        return Lat;
+        return lat;
     }
 
     public void setLat(Double lat) {
-        Lat = lat;
+        this.lat = lat;
     }
 
     public Double getLng() {
-        return Lng;
+        return lng;
     }
 
     public void setLng(Double lng) {
-        Lng = lng;
+        this.lng = lng;
     }
 
     public Long getDestinationId() {
@@ -46,8 +46,8 @@ public class RoutePoint {
     }
 
     public RoutePoint(Double lat, Double lng, Long destinationId) {
-        Lat = lat;
-        Lng = lng;
+        this.lat = lat;
+        this.lng = lng;
         this.destinationId = destinationId;
     }
 }

@@ -198,7 +198,7 @@ public class UserService {
         return sortDriversByCompatibility(get(id), driversInRadius);
     }
 
-    private Double calculateDistanceBetweenTwoPositions(Position pos1, Position pos2) throws TransformException, FactoryException {
+    public Double calculateDistanceBetweenTwoPositions(Position pos1, Position pos2) throws TransformException, FactoryException {
         CoordinateReferenceSystem crs = CRS.parseWKT(EPSG4326);
 
         GeodeticCalculator gc = new GeodeticCalculator(crs);

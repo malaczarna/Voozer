@@ -4,23 +4,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.operation.TransformException;
 import pl.jarosyjarosy.yougetin.routepoint.model.RoutePoint;
-import pl.jarosyjarosy.yougetin.routepoint.repository.RoutePointRepository;
 import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
-import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
 import pl.jarosyjarosy.yougetin.user.model.User;
 import pl.jarosyjarosy.yougetin.user.repository.UserRepository;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,7 +31,7 @@ public class UserServiceTest {
     private UserService userService;
 
     @Test
-    public void getDriversInRadiusInKm() throws FactoryException, TransformException {
+    public void shouldReturnSorteddriverList() throws FactoryException, TransformException {
         User passenger = new User();
         passenger.setId(10L);
         passenger.setLat(52.401810);
