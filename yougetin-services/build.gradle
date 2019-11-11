@@ -7,7 +7,7 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'war'
 
 group = 'pl.jarosyjarosy'
-version = '0.0.4'
+version = '0.0.5'
 sourceCompatibility = '1.8'
 
 configurations {
@@ -44,6 +44,4 @@ dependencies {
     testCompile group: 'org.geotools', name: 'gt-epsg-hsql', version: '22.0'
 
     compile group: 'com.google.firebase', name: 'firebase-admin', version: '6.11.0'
-
-
 }

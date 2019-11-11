@@ -46,9 +46,6 @@ public class FCMService {
             BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
             LOGGER.info(response.getSuccessCount() + " messages were sent successfully");
         }
-
-
     }
-
 
 }
