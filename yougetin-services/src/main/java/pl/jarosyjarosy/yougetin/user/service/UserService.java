@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.jarosyjarosy.yougetin.destination.model.Destination;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
+import pl.jarosyjarosy.yougetin.routepoint.model.RoutePoint;
+import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
 import pl.jarosyjarosy.yougetin.user.model.Profile;
 import pl.jarosyjarosy.yougetin.user.model.Role;
@@ -22,9 +24,8 @@ import pl.jarosyjarosy.yougetin.user.repository.UserRepository;
 
 import javax.transaction.Transactional;
 import java.time.Clock;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class UserService {
@@ -33,16 +34,19 @@ public class UserService {
 
     private UserRepository userRepository;
     private UserValidationService userValidationService;
+    private RoutePointService routePointService;
     private RoleRepository roleRepository;
     private Clock clock;
 
     @Autowired
     public UserService(UserRepository userRepository,
                        UserValidationService userValidationService,
+                       RoutePointService routePointService,
                        RoleRepository roleRepository,
                        Clock clock) {
         this.userRepository = userRepository;
         this.userValidationService = userValidationService;
+        this.routePointService = routePointService;
         this.roleRepository = roleRepository;
         this.clock = clock;
     }
@@ -101,12 +105,8 @@ public class UserService {
     public Position getUserPosition(Long id) {
         LOGGER.info("LOGGER: get user {} routepoint", id);
         User user = get(id);
-        Position userPosition = new Position();
 
-        userPosition.setLat(user.getLat());
-        userPosition.setLng(user.getLng());
-
-        return userPosition;
+        return new Position(user.getLat(), user.getLng());
     }
 
     @Transactional
@@ -186,21 +186,58 @@ public class UserService {
 
         List<User> driversInRadius = new ArrayList<>();
 
-//        CoordinateReferenceSystem crs = CRS.decode("EPSG:4326");
-        CoordinateReferenceSystem crs = CRS.parseWKT(EPSG4326);
-
-        GeodeticCalculator gc = new GeodeticCalculator(crs);
-        gc.setStartingPosition(JTS.toDirectPosition(new Coordinate(userPosition.getLng(), userPosition.getLat()), crs));
-
         for (User driver : getActiveDrivers()) {
-            gc.setDestinationPosition(JTS.toDirectPosition(new Coordinate(driver.getLng(), driver.getLat()), crs));
-            LOGGER.info("LOGGER: get active drivers in {} radius - actual driver id {}: {} m", radius, driver.getId(), gc.getOrthodromicDistance());
-            if (gc.getOrthodromicDistance() < radius) {
+            Position driverPosition = new Position(driver.getLat(), driver.getLng());
+            Double distance = calculateDistanceBetweenTwoPositions(userPosition, driverPosition);
+            LOGGER.info("LOGGER: get active drivers in {} radius - actual driver id {}: {} m", radius, driver.getId(), distance);
+            if (distance < radius) {
                 driversInRadius.add(driver);
             }
         }
 
-        return driversInRadius;
+        return sortDriversByCompatibility(get(id), driversInRadius);
+    }
+
+    public Double calculateDistanceBetweenTwoPositions(Position pos1, Position pos2) throws TransformException, FactoryException {
+        CoordinateReferenceSystem crs = CRS.parseWKT(EPSG4326);
+
+        GeodeticCalculator gc = new GeodeticCalculator(crs);
+        gc.setStartingPosition(JTS.toDirectPosition(new Coordinate(pos1.getLng(), pos1.getLat()), crs));
+        gc.setDestinationPosition(JTS.toDirectPosition(new Coordinate(pos2.getLng(), pos2.getLat()), crs));
+
+        return gc.getOrthodromicDistance();
+    }
+
+    private Double calculateDriverCompatibilty(List<RoutePoint> userRoute, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
+        if (userRoute.size() > 0) {
+            long score = 0L;
+            for (RoutePoint userPoint : userRoute) {
+                for (RoutePoint driverPoint : driverRoute) {
+                    if (calculateDistanceBetweenTwoPositions(new Position(userPoint.getLat(), userPoint.getLng()),
+                            new Position(driverPoint.getLat(), driverPoint.getLng())) < 250D) {
+                        score++;
+                        break;
+                    }
+                }
+            }
+            LOGGER.info("LOGGER: calculate driver compatibilty - {}%", (double) score / userRoute.size() * 100);
+            return (double) score / userRoute.size() * 100;
+        } else {
+            LOGGER.info("LOGGER: calculate driver compatibilty - 0%");
+            return 0D;
+        }
+    }
+
+    private List<User> sortDriversByCompatibility(User passenger, List<User> drivers) throws TransformException, FactoryException {
+        HashMap<User, Double> driversMap = new HashMap<>();
+        for (User driver : drivers) {
+            LOGGER.info("LOGGER: calculating driver {} compatibilty", driver.getId());
+            driversMap.put(driver, calculateDriverCompatibilty(routePointService.getRoute(passenger.getDestinationId()),
+                    routePointService.getRoute(driver.getDestinationId())));
+        }
+
+        return driversMap.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue())).map(Map.Entry::getKey).collect(Collectors.toList());
+
     }
 
 }
