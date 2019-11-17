@@ -5,6 +5,7 @@ import android.util.Log
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import pl.voozer.service.model.Destination
+import pl.voozer.service.model.NotificationMessage
 import pl.voozer.service.model.Position
 import pl.voozer.service.network.Api
 import pl.voozer.ui.base.BaseController
@@ -51,6 +52,19 @@ class MainController : BaseController<MainView>() {
     }
 
     @SuppressLint("CheckResult")
+    fun loadSpecificUser(id: String) {
+        api.getSpecificUser(id = id)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                { user -> view.updateSpecificUser(user) },
+                { error: Throwable ->
+                    Log.d("Error", error.localizedMessage)
+                }
+            )
+    }
+
+    @SuppressLint("CheckResult")
     fun changeProfile() {
         api.setProfile()
             .observeOn(AndroidSchedulers.mainThread())
@@ -76,9 +90,22 @@ class MainController : BaseController<MainView>() {
             )
     }
 
+//    @SuppressLint("CheckResult")
+//    fun loadDrivers(radius: Double) {
+//        api.getDrivers(radius = radius)
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribeOn(Schedulers.io())
+//            .subscribe(
+//                { drivers -> view.updateDrivers(drivers) },
+//                { error: Throwable ->
+//                    Log.d("Error", error.localizedMessage)
+//                }
+//            )
+//    }
+
     @SuppressLint("CheckResult")
-    fun loadDrivers(radius: Double) {
-        api.getDrivers(radius = radius)
+    fun loadDrivers() {
+        api.getDrivers()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(
@@ -109,6 +136,32 @@ class MainController : BaseController<MainView>() {
             .subscribeOn(Schedulers.io())
             .subscribe(
                 { direction -> view.setRoute(direction)},
+                { error: Throwable ->
+                    Log.d("Error", error.localizedMessage)
+                }
+            )
+    }
+
+    @SuppressLint("CheckResult")
+    fun sendFirebaseToken(token: String) {
+        api.setFirebaseToken(token = token)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                {},
+                { error: Throwable ->
+                    Log.d("Error", error.localizedMessage)
+                }
+            )
+    }
+
+    @SuppressLint("CheckResult")
+    fun sendNotification(notificationMessage: NotificationMessage) {
+        api.setNotification(notificationMessage = notificationMessage)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                {},
                 { error: Throwable ->
                     Log.d("Error", error.localizedMessage)
                 }

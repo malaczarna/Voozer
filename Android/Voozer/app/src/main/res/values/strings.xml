@@ -24,4 +24,7 @@
     <string name="menu_regulations">Regulamin</string>
     <string name="menu_driver">Kierowca</string>
     <string name="menu_passenger">Pasażer</string>
+    <string name="default_notification_channel_id">default</string>
+    <string name="default_notification_channel_name">default</string>
+    <string name="default_notification_channel_description">default</string>
 </resources>

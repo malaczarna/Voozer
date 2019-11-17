@@ -23,7 +23,7 @@ class RegisterController : BaseController<RegisterView>() {
                     }
                 },
                 { error: Throwable ->
-                    Log.d("registerError", "Cannot register!")
+                    Log.d("registerError", error.localizedMessage)
                 }
             )
     }

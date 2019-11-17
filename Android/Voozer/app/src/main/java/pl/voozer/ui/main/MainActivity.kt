@@ -6,10 +6,12 @@ import pl.voozer.R
 import pl.voozer.ui.base.BaseActivity
 import android.Manifest.permission
 import android.animation.ObjectAnimator
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.location.Location
 import android.os.Handler
 import android.util.Log
@@ -17,7 +19,6 @@ import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
@@ -32,6 +33,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.TypeFilter
@@ -39,14 +41,12 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.navigation.NavigationView
+import com.google.firebase.iid.FirebaseInstanceId
 import com.google.maps.android.PolyUtil
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.content_main.*
 import pl.voozer.BuildConfig
-import pl.voozer.service.model.Destination
-import pl.voozer.service.model.Position
-import pl.voozer.service.model.Profile
-import pl.voozer.service.model.User
+import pl.voozer.service.model.*
 import pl.voozer.service.model.direction.Direction
 import pl.voozer.service.network.Connection
 import pl.voozer.ui.adapter.DriversAdapter
@@ -64,15 +64,20 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private lateinit var lastLocation: Location
     private lateinit var destination: Destination
     private lateinit var place: Place
-    private lateinit var latLngPoints: List<LatLng>
-    private var requestingLocationUpdates: Boolean = false
-    private var isDestinationReloadNeeded = false
+    private lateinit var routePoints: List<LatLng>
     private lateinit var user: User
     private lateinit var toolbar: Toolbar
     private lateinit var navView: NavigationView
+    private lateinit var specificUser: User
+    private var requestingLocationUpdates: Boolean = false
+    private var isDestinationReloadNeeded = false
     private var fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
-    private val AUTOCOMPLETE_REQUEST_CODE = 1
     private var lastRoute: Polyline? = null
+    private var notificationReceiver: BroadcastReceiver? = null
+    private var meetingLat: Double = 0.0
+    private var meetingLng: Double = 0.0
+    private val AUTOCOMPLETE_REQUEST_CODE = 1
+
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
@@ -112,6 +117,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         rvDriversList.layoutManager = LinearLayoutManager(applicationContext)
         rvDriversList.adapter = DriversAdapter(drivers = drivers, context = applicationContext, listener = object: DriversAdapter.OnItemClickListener {
             override fun onDriverClick(driver: User) {
+                controller.sendNotification(NotificationMessage(passengerId = user.id, driverId = driver.id))
                 splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(driver.lat, driver.lng), 12f))
             }
@@ -147,15 +153,23 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
     }
 
+    override fun updateSpecificUser(user: User) {
+        specificUser = user
+        MaterialDialog(this@MainActivity).show {
+            title(text = "Użytkownik ${specificUser.name} prosi o podwóżkę.")
+            message(text = "Współrzędne spotkania to $meetingLat:$meetingLng, powodzenia!")
+        }
+    }
+
     override fun setRoute(direction: Direction) {
         lastRoute?.remove()
         val options = PolylineOptions()
         options.color(ContextCompat.getColor(applicationContext, R.color.colorPrimaryDriver))
         options.width(5f)
         val points = direction.routes[0].legs[0].steps
-        latLngPoints = points.flatMap { PolyUtil.decode(it.polyline.points) }
-        val route = latLngPoints.map { Position(lat = it.latitude, lng = it.longitude) }
-        for(point in latLngPoints) {
+        routePoints = points.flatMap { PolyUtil.decode(it.polyline.points) }
+        val route = routePoints.map { Position(lat = it.latitude, lng = it.longitude) }
+        for(point in routePoints) {
             options.add(point)
         }
         lastRoute = googleMap.addPolyline(options)
@@ -203,15 +217,31 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         place = Autocomplete.getPlaceFromIntent(data)
                         place.latLng?.let { placeDestinationMarkerOnMap(it) }
                         tvSearch.text = place.address
-                        controller.loadDirection(
-                            api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
-                            origin = "${lastLocation.latitude},${lastLocation.longitude}",
-                            destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
-                            key = BuildConfig.GOOGLE_API_KEY
-                        )
+                        if (ContextCompat.checkSelfPermission(
+                                applicationContext,
+                                permission.ACCESS_FINE_LOCATION
+                            ) == PackageManager.PERMISSION_GRANTED
+                            || ContextCompat.checkSelfPermission(
+                                applicationContext,
+                                permission.ACCESS_COARSE_LOCATION
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
+                                if (location != null) {
+                                    lastLocation = location
+                                    controller.loadDirection(
+                                        api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
+                                        origin = "${lastLocation.latitude},${lastLocation.longitude}",
+                                        destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                                        key = BuildConfig.GOOGLE_API_KEY
+                                    )
+                                }
+                            }
+                        }
                         when (user.profile) {
                             Profile.PASSENGER -> {
-                                controller.loadDrivers(radius = RADIUS)
+                                //controller.loadDrivers(radius = RADIUS)
+                                controller.loadDrivers()
                                 splDrivers.anchorPoint = 0.7f
                                 splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
                                 ObjectAnimator.ofFloat(llFabButtons, "translationY", -splDrivers.panelHeight.toFloat()).apply {
@@ -245,8 +275,23 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let { newIntent ->
+            if(newIntent.action == SHOW_MESSAGE_ACTION) {
+                newIntent.extras?.let { bundle ->
+                    val passengerId = bundle.getString("passengerId", "0")
+                    meetingLat = bundle.getString("meetingLat", "0.0").toDouble()
+                    meetingLng = bundle.getString("meetingLng", "0.0").toDouble()
+                    controller.loadSpecificUser(passengerId)
+                }
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
+        notificationReceiver?.let { registerReceiver(it, IntentFilter(NOTIFICATION_BROADCAST_RECEIVER_ACTION)) }
         if (requestingLocationUpdates) {
             startLocationUpdates()
         }
@@ -254,6 +299,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
 
     override fun onPause() {
         super.onPause()
+        notificationReceiver?.let { unregisterReceiver(it) }
         if(requestingLocationUpdates) {
             stopLocationUpdates()
         }
@@ -292,8 +338,57 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
         super.onCreate(savedInstanceState)
         initLayout()
+        initFirebase()
+        initNotificationReceiver()
         getLocationPermission()
-        Log.d("height", llHeaderBar.height.toString())
+        initLocationCallback()
+        initOnClickListeners()
+    }
+
+    private fun initNotificationReceiver() {
+        notificationReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                val title = intent.getStringExtra("title")
+                val body = intent.getStringExtra("body")
+                MaterialDialog(this@MainActivity).show {
+                    title(text = title)
+                    message(text = body)
+                }
+            }
+        }
+    }
+
+    private fun initFirebase() {
+        FirebaseInstanceId.getInstance().instanceId
+            .addOnCompleteListener(OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w("firebase-token", "getInstanceId failed", task.exception)
+                    return@OnCompleteListener
+                }
+                val token = task.result?.token
+                Log.d("firebase-token", token)
+                token?.let{
+                    controller.sendFirebaseToken(it)
+                }
+            })
+    }
+
+    private fun initLayout() {
+        toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+        val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
+        navView = findViewById(R.id.nav_view)
+        val toggle = ActionBarDrawerToggle(
+            this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
+        )
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+        navView.setNavigationItemSelectedListener(this)
+        controller.loadUser()
+    }
+
+    private fun initOnClickListeners() {
         fabMyPosition.setOnClickListener {
             if (ContextCompat.checkSelfPermission(
                     applicationContext,
@@ -348,29 +443,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 .build(this)
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)
         }
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-                for (location in locationResult.locations){
-                    if (!PolyUtil.isLocationOnPath(LatLng(location.latitude, location.longitude), latLngPoints, false, TOLERANCE)) {
-                        isDestinationReloadNeeded = true
-                        controller.loadDirection(
-                            api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
-                            origin = "${lastLocation.latitude},${lastLocation.longitude}",
-                            destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
-                            key = BuildConfig.GOOGLE_API_KEY
-                        )
-                    } else {
-                        if (isDestinationReloadNeeded) {
-                            controller.setDestination(destination)
-                            isDestinationReloadNeeded = false
-                        } else {
-                            controller.sendPosition(Position(location.latitude, location.longitude))
-                        }
-                    }
-                }
-            }
-        }
         btnAcceptDestination.setOnClickListener {
             requestingLocationUpdates = true
             startLocationUpdates()
@@ -419,19 +491,29 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
     }
 
-    private fun initLayout() {
-        toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
-        val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
-        navView = findViewById(R.id.nav_view)
-        val toggle = ActionBarDrawerToggle(
-            this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
-        )
-        drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
-        navView.setNavigationItemSelectedListener(this)
-        controller.loadUser()
+    private fun initLocationCallback() {
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations){
+                    if (isDestinationReloadNeeded) {
+                        controller.setDestination(destination)
+                        isDestinationReloadNeeded = false
+                    }
+                    if (!PolyUtil.isLocationOnPath(LatLng(location.latitude, location.longitude), routePoints, false, TOLERANCE)) {
+                        isDestinationReloadNeeded = true
+                        controller.loadDirection(
+                            api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
+                            origin = "${location.latitude},${location.longitude}",
+                            destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                            key = BuildConfig.GOOGLE_API_KEY
+                        )
+                    } else {
+                        controller.sendPosition(Position(location.latitude, location.longitude))
+                    }
+                }
+            }
+        }
     }
 
     private fun initLocation(){

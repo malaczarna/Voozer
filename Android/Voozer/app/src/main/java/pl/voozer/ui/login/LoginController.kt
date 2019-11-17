@@ -35,7 +35,7 @@ class LoginController : BaseController<LoginView>() {
                     }
                 },
                 { error: Throwable ->
-                    Log.d("debugLogin", "Cannot login")
+                    Log.d("debugLogin", error.localizedMessage)
                 }
             )
     }
