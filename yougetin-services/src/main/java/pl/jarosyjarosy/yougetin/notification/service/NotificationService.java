@@ -58,7 +58,7 @@ public class NotificationService {
 
         Notification savedNotification = notificationRepository.save(notification);
 
-        fcmService.sendPushNotificationToDriver(savedNotification);
+        fcmService.sendPushNotificationToDriver(savedNotification, this.userService.get(notification.getPassengerId()).getName());
 
         return savedNotification;
     }
@@ -67,16 +67,17 @@ public class NotificationService {
         Position passengerPos = userService.getUserPosition(passengerId);
         User driver = userService.get(driverId);
 
-        RoutePoint closestPoint = new RoutePoint(0D, 0D, 0L);
-        List<RoutePoint> driverRoute = routePointService.getRoute(driver.getDestinationId());
-        for (RoutePoint point : driverRoute) {
-            if (closestPoint.getDestinationId() == 0L || userService.calculateDistanceBetweenTwoPositions(passengerPos, new Position(point.getLat(), point.getLng())) <
-                    userService.calculateDistanceBetweenTwoPositions(passengerPos, new Position(closestPoint.getLat(), closestPoint.getLng()))) {
-                closestPoint = point;
-            }
-        }
-
-
-        return new Position(closestPoint.getLat(), closestPoint.getLng());
+//        RoutePoint closestPoint = new RoutePoint(0D, 0D, 0L);
+//        List<RoutePoint> driverRoute = routePointService.getRoute(driver.getDestinationId());
+//        for (RoutePoint point : driverRoute) {
+//            if (closestPoint.getDestinationId() == 0L || userService.calculateDistanceBetweenTwoPositions(passengerPos, new Position(point.getLat(), point.getLng())) <
+//                    userService.calculateDistanceBetweenTwoPositions(passengerPos, new Position(closestPoint.getLat(), closestPoint.getLng()))) {
+//                closestPoint = point;
+//            }
+//        }
+//
+//
+//        return new Position(closestPoint.getLat(), closestPoint.getLng());
+        return new Position(52.41, 16.91);
     }
 }
