@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.jarosyjarosy.yougetin.destination.model.Destination;
+import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
 import pl.jarosyjarosy.yougetin.routepoint.model.RoutePoint;
 import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
@@ -21,6 +22,7 @@ import pl.jarosyjarosy.yougetin.user.model.Role;
 import pl.jarosyjarosy.yougetin.user.model.User;
 import pl.jarosyjarosy.yougetin.user.repository.RoleRepository;
 import pl.jarosyjarosy.yougetin.user.repository.UserRepository;
+import sun.security.krb5.internal.crypto.Des;
 
 import javax.transaction.Transactional;
 import java.time.Clock;
@@ -35,6 +37,7 @@ public class UserService {
     private UserRepository userRepository;
     private UserValidationService userValidationService;
     private RoutePointService routePointService;
+    private DestinationService destinationService;
     private RoleRepository roleRepository;
     private Clock clock;
 
@@ -42,11 +45,13 @@ public class UserService {
     public UserService(UserRepository userRepository,
                        UserValidationService userValidationService,
                        RoutePointService routePointService,
+                       DestinationService destinationService,
                        RoleRepository roleRepository,
                        Clock clock) {
         this.userRepository = userRepository;
         this.userValidationService = userValidationService;
         this.routePointService = routePointService;
+        this.destinationService = destinationService;
         this.roleRepository = roleRepository;
         this.clock = clock;
     }
@@ -208,7 +213,7 @@ public class UserService {
         return gc.getOrthodromicDistance();
     }
 
-    private Double calculateDriverCompatibilty(List<RoutePoint> userRoute, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
+    private Double calculateDriverCompatibiltyByRoutes(List<RoutePoint> userRoute, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
         if (userRoute.size() > 0) {
             long score = 0L;
             for (RoutePoint userPoint : userRoute) {
@@ -228,11 +233,35 @@ public class UserService {
         }
     }
 
+    private Double getDistanceBetweenDestinationAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
+
+        Position passengerDestinationPoint = new Position(destinationService.get(passenger.getDestinationId()).getLat(), destinationService.get(passenger.getDestinationId()).getLng());
+
+        return calculateMinimumDistanceToRoute(driverRoute, passengerDestinationPoint);
+    }
+
+    private Double getDistanceBetweenPassengerAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
+        return calculateMinimumDistanceToRoute(driverRoute, getUserPosition(passenger.getId()));
+    }
+
+    private Double calculateMinimumDistanceToRoute(List<RoutePoint> driverRoute, Position position) throws TransformException, FactoryException {
+        Double distance = -1D;
+        Double distanceToCheck;
+        for (RoutePoint point: driverRoute) {
+            distanceToCheck = calculateDistanceBetweenTwoPositions(new Position(point.getLat(), point.getLng()), position);
+            if (distance >  distanceToCheck || distance == -1) {
+                distance = distanceToCheck;
+            }
+        }
+
+        return distance;
+    }
+
     private List<User> sortDriversByCompatibility(User passenger, List<User> drivers) throws TransformException, FactoryException {
         HashMap<User, Double> driversMap = new HashMap<>();
         for (User driver : drivers) {
             LOGGER.info("LOGGER: calculating driver {} compatibilty", driver.getId());
-            driversMap.put(driver, calculateDriverCompatibilty(routePointService.getRoute(passenger.getDestinationId()),
+            driversMap.put(driver, calculateDriverCompatibiltyByRoutes(routePointService.getRoute(passenger.getDestinationId()),
                     routePointService.getRoute(driver.getDestinationId())));
         }
 
