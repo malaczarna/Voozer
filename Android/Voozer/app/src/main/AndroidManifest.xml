@@ -34,7 +34,6 @@
         <activity
                 android:name=".ui.main.MainActivity"
                 android:screenOrientation="portrait"
-                android:launchMode="singleTop"
                 android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="SHOW_MESSAGE"/>

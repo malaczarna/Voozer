@@ -275,8 +275,12 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
+    override fun onResume() {
+        super.onResume()
+        notificationReceiver?.let { registerReceiver(it, IntentFilter(NOTIFICATION_BROADCAST_RECEIVER_ACTION)) }
+        if (requestingLocationUpdates) {
+            startLocationUpdates()
+        }
         intent?.let { newIntent ->
             if(newIntent.action == SHOW_MESSAGE_ACTION) {
                 newIntent.extras?.let { bundle ->
@@ -286,14 +290,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     controller.loadSpecificUser(passengerId)
                 }
             }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        notificationReceiver?.let { registerReceiver(it, IntentFilter(NOTIFICATION_BROADCAST_RECEIVER_ACTION)) }
-        if (requestingLocationUpdates) {
-            startLocationUpdates()
         }
     }
 
