@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_login.*
@@ -21,6 +23,7 @@ import pl.voozer.utils.SharedPreferencesHelper
 class LoginActivity : BaseActivity<LoginController, LoginView>(), LoginView {
 
     override fun updateUser(user: User) {
+        hideProgressDialog()
         when(user.profile) {
             Profile.PASSENGER -> {
                 SharedPreferencesHelper.setMainTheme(applicationContext, true)
@@ -29,6 +32,7 @@ class LoginActivity : BaseActivity<LoginController, LoginView>(), LoginView {
                 SharedPreferencesHelper.setMainTheme(applicationContext, false)
             }
         }
+        SharedPreferencesHelper.setLoggedIn(applicationContext, true)
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
@@ -42,7 +46,6 @@ class LoginActivity : BaseActivity<LoginController, LoginView>(), LoginView {
         controller = LoginController()
         controller.view = this
         controller.api = Connection.Builder().provideOkHttpClient().provideRetrofit().createApi()
-        controller.sharedPreferences = this.getSharedPreferences("123", Context.MODE_PRIVATE)
     }
 
     override fun getLayoutResId(): Int {
@@ -52,7 +55,9 @@ class LoginActivity : BaseActivity<LoginController, LoginView>(), LoginView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         btnLogin.setOnClickListener {
+            showProgressDialog()
             controller.login(
+                this,
                 Login(
                     tilEmail.editText?.text.toString(),
                     tilPassword.editText?.text.toString())

@@ -1,6 +1,7 @@
 package pl.voozer.ui.login
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -10,27 +11,19 @@ import pl.voozer.service.model.Auth
 import pl.voozer.service.model.Login
 import pl.voozer.service.network.Api
 import pl.voozer.ui.base.BaseController
+import pl.voozer.utils.SharedPreferencesHelper
 
 class LoginController : BaseController<LoginView>() {
 
-    lateinit var sharedPreferences: SharedPreferences
-
-    private fun saveToken(auth: Auth){
-        val editor = sharedPreferences.edit()
-        editor.putString("token", "Bearer ${auth.token}")
-        editor.apply()
-    }
-
-
     @SuppressLint("CheckResult")
-    fun login(body: Login) {
+    fun login(context: Context, body: Login) {
         api.login(body)
             .observeOn(Schedulers.io())
             .subscribeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { token ->
                     run {
-                        saveToken(token)
+                        SharedPreferencesHelper.saveToken(context, token)
                         view.login()
                     }
                 },

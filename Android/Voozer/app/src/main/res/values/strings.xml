@@ -20,6 +20,7 @@
     <string name="menu_preferences">Twoje preferencje</string>
     <string name="menu_help">Pomoc</string>
     <string name="menu_settings">Ustawienia</string>
+    <string name="menu_logout">Wyloguj</string>
     <string name="menu_other">Inne</string>
     <string name="menu_regulations">Regulamin</string>
     <string name="menu_driver">Kierowca</string>

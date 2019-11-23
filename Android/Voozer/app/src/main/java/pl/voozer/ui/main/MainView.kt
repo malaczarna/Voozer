@@ -11,4 +11,5 @@ interface MainView : BaseView {
     fun updateSpecificUser(user: User)
     fun updateDrivers(drivers: List<User>)
     fun setRoute(direction: Direction)
+    fun updateFirebaseToken()
 }

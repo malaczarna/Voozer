@@ -135,7 +135,7 @@ class MainController : BaseController<MainView>() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(
-                { direction -> view.setRoute(direction)},
+                { direction -> view.setRoute(direction) },
                 { error: Throwable ->
                     Log.d("Error", error.localizedMessage)
                 }
@@ -148,7 +148,7 @@ class MainController : BaseController<MainView>() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(
-                {},
+                { view.updateFirebaseToken() },
                 { error: Throwable ->
                     Log.d("Error", error.localizedMessage)
                 }

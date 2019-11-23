@@ -9,7 +9,9 @@ import pl.voozer.service.network.Connection
 import pl.voozer.service.notification.NotificationService
 import pl.voozer.ui.base.BaseActivity
 import pl.voozer.ui.login.LoginActivity
+import pl.voozer.ui.main.MainActivity
 import pl.voozer.utils.SPLASH_DELAY
+import pl.voozer.utils.SharedPreferencesHelper
 
 class SplashActivity : BaseActivity<SplashController, SplashView>(), SplashView {
 
@@ -28,7 +30,14 @@ class SplashActivity : BaseActivity<SplashController, SplashView>(), SplashView 
         super.onCreate(savedInstanceState)
         initNotificationChannel()
         Handler().postDelayed({
-            startActivity(Intent(this, LoginActivity::class.java))
+            when (SharedPreferencesHelper.isLoggedIn(applicationContext)) {
+                true -> {
+                    startActivity(Intent(this, MainActivity::class.java))
+                }
+                false -> {
+                    startActivity(Intent(this, LoginActivity::class.java))
+                }
+            }
             finish()
         }, SPLASH_DELAY)
     }

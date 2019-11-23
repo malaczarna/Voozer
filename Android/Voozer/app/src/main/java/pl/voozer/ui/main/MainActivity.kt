@@ -16,6 +16,7 @@ import android.location.Location
 import android.os.Handler
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -35,7 +36,9 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.LocationBias
 import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteActivity
@@ -50,6 +53,7 @@ import pl.voozer.service.model.*
 import pl.voozer.service.model.direction.Direction
 import pl.voozer.service.network.Connection
 import pl.voozer.ui.adapter.DriversAdapter
+import pl.voozer.ui.login.LoginActivity
 import pl.voozer.utils.*
 import java.util.*
 
@@ -111,6 +115,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     }
 
     override fun updateDrivers(drivers: List<User>) {
+        hideProgressDialog()
+        if (drivers.isEmpty()) {
+            tvNoDrivers.visibility = View.VISIBLE
+        }
         for (driver in drivers) {
             placeDriverMarkerOnMap(LatLng(driver.lat, driver.lng))
         }
@@ -122,6 +130,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(driver.lat, driver.lng), 12f))
             }
         })
+    }
+
+    override fun updateFirebaseToken() {
+        SharedPreferencesHelper.setFirebaseInit(applicationContext, true)
     }
 
     override fun updateUser(user: User) {
@@ -162,6 +174,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     }
 
     override fun setRoute(direction: Direction) {
+        hideProgressDialog()
         lastRoute?.remove()
         val options = PolylineOptions()
         options.color(ContextCompat.getColor(applicationContext, R.color.colorPrimaryDriver))
@@ -200,6 +213,12 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             R.id.nav_settings -> {
 
             }
+            R.id.nav_logout -> {
+                SharedPreferencesHelper.setFirebaseInit(applicationContext, false) //TODO: Send request for deleting firebase-token from database.
+                SharedPreferencesHelper.setLoggedIn(applicationContext, false)
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
             R.id.nav_regulations -> {
 
             }
@@ -229,6 +248,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                             fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
                                 if (location != null) {
                                     lastLocation = location
+                                    showProgressDialog()
                                     controller.loadDirection(
                                         api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
                                         origin = "${lastLocation.latitude},${lastLocation.longitude}",
@@ -241,6 +261,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         when (user.profile) {
                             Profile.PASSENGER -> {
                                 //controller.loadDrivers(radius = RADIUS)
+                                showProgressDialog()
                                 controller.loadDrivers()
                                 splDrivers.anchorPoint = 0.7f
                                 splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
@@ -287,6 +308,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     val passengerId = bundle.getString("passengerId", "0")
                     meetingLat = bundle.getString("meetingLat", "0.0").toDouble()
                     meetingLng = bundle.getString("meetingLng", "0.0").toDouble()
+                    showProgressDialog()
                     controller.loadSpecificUser(passengerId)
                 }
             }
@@ -355,18 +377,22 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     }
 
     private fun initFirebase() {
-        FirebaseInstanceId.getInstance().instanceId
-            .addOnCompleteListener(OnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    Log.w("firebase-token", "getInstanceId failed", task.exception)
-                    return@OnCompleteListener
-                }
-                val token = task.result?.token
-                Log.d("firebase-token", token)
-                token?.let{
-                    controller.sendFirebaseToken(it)
-                }
-            })
+        SharedPreferencesHelper.isFirebaseInit(applicationContext)?.let { isFirebaseInit ->
+            if (!isFirebaseInit) {
+                FirebaseInstanceId.getInstance().instanceId
+                    .addOnCompleteListener(OnCompleteListener { task ->
+                        if (!task.isSuccessful) {
+                            Log.w("firebase-token", "getInstanceId failed", task.exception)
+                            return@OnCompleteListener
+                        }
+                        val token = task.result?.token
+                        Log.d("firebase-token", token)
+                        token?.let{
+                            controller.sendFirebaseToken(it)
+                        }
+                    })
+            }
+        }
     }
 
     private fun initLayout() {
@@ -435,6 +461,12 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             val intent = Autocomplete.IntentBuilder(
                 AutocompleteActivityMode.FULLSCREEN, fields)
                 .setTypeFilter(TypeFilter.ADDRESS)
+                .setLocationBias(
+                    RectangularBounds.newInstance(
+                        LatLng(52.318536, 16.752789),
+                        LatLng(52.474892, 17.059874)
+                    )
+                )
                 .setCountry("PL")
                 .build(this)
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)

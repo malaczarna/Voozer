@@ -14,6 +14,7 @@ import pl.voozer.ui.base.BaseActivity
 class RegisterActivity : BaseActivity<RegisterController, RegisterView>(), RegisterView {
 
     override fun register() {
+        hideProgressDialog()
         finish()
     }
 
@@ -30,6 +31,7 @@ class RegisterActivity : BaseActivity<RegisterController, RegisterView>(), Regis
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         btnRegister.setOnClickListener {
+            showProgressDialog()
             controller.register(
                 Register(
                     tilName.editText?.text.toString(),
