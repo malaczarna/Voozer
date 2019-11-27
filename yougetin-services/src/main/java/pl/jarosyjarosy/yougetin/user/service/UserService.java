@@ -37,7 +37,6 @@ public class UserService {
     private UserRepository userRepository;
     private UserValidationService userValidationService;
     private RoutePointService routePointService;
-    private DestinationService destinationService;
     private RoleRepository roleRepository;
     private Clock clock;
 
@@ -45,13 +44,11 @@ public class UserService {
     public UserService(UserRepository userRepository,
                        UserValidationService userValidationService,
                        RoutePointService routePointService,
-                       DestinationService destinationService,
                        RoleRepository roleRepository,
                        Clock clock) {
         this.userRepository = userRepository;
         this.userValidationService = userValidationService;
         this.routePointService = routePointService;
-        this.destinationService = destinationService;
         this.roleRepository = roleRepository;
         this.clock = clock;
     }
@@ -233,18 +230,18 @@ public class UserService {
         }
     }
 
-    private Double getDistanceBetweenDestinationAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
-
-        Position passengerDestinationPoint = new Position(destinationService.get(passenger.getDestinationId()).getLat(), destinationService.get(passenger.getDestinationId()).getLng());
-
-        return calculateMinimumDistanceToRoute(driverRoute, passengerDestinationPoint);
-    }
+//    private Double getDistanceBetweenDestinationAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
+//
+//        Position passengerDestinationPoint = new Position(destinationService.get(passenger.getDestinationId()).getLat(), destinationService.get(passenger.getDestinationId()).getLng());
+//
+//        return calculateMinimumDistanceToRoute(driverRoute, passengerDestinationPoint);
+//    }
 
     private Double getDistanceBetweenPassengerAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
         return calculateMinimumDistanceToRoute(driverRoute, getUserPosition(passenger.getId()));
     }
 
-    private Double calculateMinimumDistanceToRoute(List<RoutePoint> driverRoute, Position position) throws TransformException, FactoryException {
+    public Double calculateMinimumDistanceToRoute(List<RoutePoint> driverRoute, Position position) throws TransformException, FactoryException {
         Double distance = -1D;
         Double distanceToCheck;
         for (RoutePoint point: driverRoute) {

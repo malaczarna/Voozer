@@ -35,7 +35,7 @@ public class UserRegistrationTokenController {
 
         UserRegistrationToken userRegistrationToken = new UserRegistrationToken();
         userRegistrationToken.setUserId(new Identity(request).getUserId());
-        userRegistrationToken.setRegistrationToken(token);
+        userRegistrationToken.setRegistrationToken(token.replace("\"", ""));
 
         return userRegistrationTokenMapperService.mapUserRegistrationToken(fcmService.saveRegistrationToken(userRegistrationToken));
     }
