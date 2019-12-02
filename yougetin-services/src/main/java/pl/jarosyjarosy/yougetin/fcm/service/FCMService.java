@@ -11,6 +11,7 @@ import pl.jarosyjarosy.yougetin.notification.model.Notification;
 import pl.jarosyjarosy.yougetin.notification.model.NotificationType;
 import pl.jarosyjarosy.yougetin.trip.service.TripService;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Component
@@ -24,11 +25,13 @@ public class FCMService {
         this.userRegistrationTokenRepository = userRegistrationTokenRepository;
     }
 
+    @Transactional
     public UserRegistrationToken saveRegistrationToken(UserRegistrationToken userRegistrationToken) {
         LOGGER.info("Registration token saved for user {}", userRegistrationToken.getUserId());
         return this.userRegistrationTokenRepository.save(userRegistrationToken);
     }
 
+    @Transactional
     public void deleteRegistrationTokensByUser(Long userId) {
         LOGGER.info("Registration tokens deleted for user {}", userId);
         this.userRegistrationTokenRepository.deleteByUserId(userId);
@@ -123,7 +126,7 @@ public class FCMService {
                                     .setPriority(AndroidConfig.Priority.HIGH).build())
                     .setNotification(new com.google.firebase.messaging.Notification(
                             "Pasażer się rozmyślił",
-                            passengerName + " już nie chce się z Tobazabrać"))
+                            passengerName + " już nie chce się z Tobą zabrać"))
                     .putData("driverId", notification.getDriverId().toString())
                     .putData("passengerId", notification.getPassengerId().toString())
                     .putData("meetingLat", notification.getMeetingLat().toString())

@@ -45,19 +45,20 @@ public class NotificationService {
 
     public Notification send(Notification notification, Long userId) throws FirebaseMessagingException {
         User user = userService.get(userId);
+        Notification baseNotification = notificationRepository.getByDriverIdAndPassengerId(notification.getDriverId(), notification.getPassengerId());
         if (notification.getType().equals(NotificationType.ASK)) {
             return creteAndSend(notification);
         }
         if (notification.getType().equals(NotificationType.ACCEPT)) {
-            acceptRequest(notification);
+            acceptRequest(baseNotification);
             return notification;
         }
         if (notification.getType().equals(NotificationType.DECLINE) && user.getCurrentProfile().equals(Profile.DRIVER)) {
-            declineRequest(notification);
+            declineRequest(baseNotification);
             return notification;
         }
         if (notification.getType().equals(NotificationType.DECLINE) && user.getCurrentProfile().equals(Profile.PASSENGER)) {
-            stopRequest(notification);
+            stopRequest(baseNotification);
             return notification;
         }
 
@@ -89,7 +90,7 @@ public class NotificationService {
     private void declineRequest(Notification notification) throws FirebaseMessagingException {
         LOGGER.info("LOGGER: send decline from {} to {}", notification.getDriverId(), notification.getPassengerId());
 
-        notificationRepository.deleteAllByDriverIdAndAndPassengerId(notification.getDriverId(), notification.getPassengerId());
+        notificationRepository.deleteById(notification.getId());
 
         fcmService.sendDeclineToPassenger(notification, this.userService.get(notification.getDriverId()).getName());
     }
@@ -98,7 +99,7 @@ public class NotificationService {
         LOGGER.info("LOGGER: send accept from {} to {}", notification.getDriverId(), notification.getPassengerId());
 
         userService.setTravelingId(notification.getDriverId(), notification.getPassengerId());
-        notificationRepository.deleteAllByDriverIdAndAndPassengerId(notification.getDriverId(), notification.getPassengerId());
+        notificationRepository.deleteById(notification.getId());
 
         fcmService.sendAcceptanceToPassenger(notification, this.userService.get(notification.getDriverId()).getName());
     }
@@ -106,7 +107,7 @@ public class NotificationService {
     private void stopRequest(Notification notification) throws FirebaseMessagingException {
         LOGGER.info("LOGGER: stop request from {} to {}", notification.getDriverId(), notification.getPassengerId());
 
-        notificationRepository.deleteAllByDriverIdAndAndPassengerId(notification.getDriverId(), notification.getPassengerId());
+        notificationRepository.deleteById(notification.getId());
 
         fcmService.sendStopRequestNotification(notification, this.userService.get(notification.getPassengerId()).getName());
     }
