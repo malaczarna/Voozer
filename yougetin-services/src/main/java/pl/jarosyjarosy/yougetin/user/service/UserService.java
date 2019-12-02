@@ -182,24 +182,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public List<User> getDriversInRadiusInMeters(Long id, Double radius) throws FactoryException, TransformException {
-        LOGGER.info("LOGGER: get active drivers in {} radius", radius);
-        Position userPosition = getUserPosition(id);
-
-        List<User> driversInRadius = new ArrayList<>();
-
-        for (User driver : getActiveDrivers()) {
-            Position driverPosition = new Position(driver.getLat(), driver.getLng());
-            Double distance = calculateDistanceBetweenTwoPositions(userPosition, driverPosition);
-            LOGGER.info("LOGGER: get active drivers in {} radius - actual driver id {}: {} m", radius, driver.getId(), distance);
-            if (distance < radius) {
-                driversInRadius.add(driver);
-            }
-        }
-
-        return sortDriversByCompatibility(get(id), driversInRadius);
-    }
-
     public Double calculateDistanceBetweenTwoPositions(Position pos1, Position pos2) throws TransformException, FactoryException {
         CoordinateReferenceSystem crs = CRS.parseWKT(EPSG4326);
 
@@ -208,26 +190,6 @@ public class UserService {
         gc.setDestinationPosition(JTS.toDirectPosition(new Coordinate(pos2.getLng(), pos2.getLat()), crs));
 
         return gc.getOrthodromicDistance();
-    }
-
-    private Double calculateDriverCompatibiltyByRoutes(List<RoutePoint> userRoute, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
-        if (userRoute.size() > 0) {
-            long score = 0L;
-            for (RoutePoint userPoint : userRoute) {
-                for (RoutePoint driverPoint : driverRoute) {
-                    if (calculateDistanceBetweenTwoPositions(new Position(userPoint.getLat(), userPoint.getLng()),
-                            new Position(driverPoint.getLat(), driverPoint.getLng())) < 250D) {
-                        score++;
-                        break;
-                    }
-                }
-            }
-            LOGGER.info("LOGGER: calculate driver compatibilty - {}%", (double) score / userRoute.size() * 100);
-            return (double) score / userRoute.size() * 100;
-        } else {
-            LOGGER.info("LOGGER: calculate driver compatibilty - 0%");
-            return 0D;
-        }
     }
 
 //    private Double getDistanceBetweenDestinationAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
@@ -254,16 +216,11 @@ public class UserService {
         return distance;
     }
 
-    private List<User> sortDriversByCompatibility(User passenger, List<User> drivers) throws TransformException, FactoryException {
-        HashMap<User, Double> driversMap = new HashMap<>();
-        for (User driver : drivers) {
-            LOGGER.info("LOGGER: calculating driver {} compatibilty", driver.getId());
-            driversMap.put(driver, calculateDriverCompatibiltyByRoutes(routePointService.getRoute(passenger.getDestinationId()),
-                    routePointService.getRoute(driver.getDestinationId())));
-        }
-
-        return driversMap.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue())).map(Map.Entry::getKey).collect(Collectors.toList());
-
+    @Transactional
+    public User setTravelingId(Long id, Long travelingId) {
+        User user = get(id);
+        user.setTravelingUserId(travelingId);
+        return userRepository.save(user);
     }
 
 }

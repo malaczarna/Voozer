@@ -12,4 +12,6 @@ import javax.transaction.Transactional;
 @Repository
 @Transactional
 public interface NotificationRepository extends CrudRepository<Notification, Long>, QueryByExampleExecutor<Notification> {
+
+    void deleteAllByDriverIdAndAndPassengerId(Long driverId, Long passengerId);
 }

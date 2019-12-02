@@ -1,6 +1,7 @@
 package pl.jarosyjarosy.yougetin.notification.endpoint.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import pl.jarosyjarosy.yougetin.notification.model.NotificationType;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class NotificationMessage {
@@ -11,6 +12,8 @@ public class NotificationMessage {
 
     private Double meetingLat;
     private Double meetingLng;
+
+    private NotificationType type;
 
     public Long getId() {
         return id;
@@ -50,5 +53,13 @@ public class NotificationMessage {
 
     public void setMeetingLng(Double meetingLng) {
         this.meetingLng = meetingLng;
+    }
+
+    public NotificationType getType() {
+        return type;
+    }
+
+    public void setType(NotificationType type) {
+        this.type = type;
     }
 }

@@ -6,8 +6,10 @@ plugins {
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'war'
 
+war { enabled = true}
+
 group = 'pl.jarosyjarosy'
-version = '0.0.10'
+version = '0.0.11'
 sourceCompatibility = '1.8'
 
 configurations {
@@ -19,7 +21,7 @@ repositories {
     maven { url "http://repo.boundlessgeo.com/main" }
     maven { url "http://maven.geotoolkit.org" }
     maven { url "http://download.osgeo.org/webdav/geotools/" }
-    mavenCentral()
+    jcenter()
 }
 
 dependencies {
@@ -44,4 +46,7 @@ dependencies {
     testCompile group: 'org.geotools', name: 'gt-epsg-hsql', version: '22.0'
 
     compile group: 'com.google.firebase', name: 'firebase-admin', version: '6.11.0'
+
+    compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+    compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
 }
