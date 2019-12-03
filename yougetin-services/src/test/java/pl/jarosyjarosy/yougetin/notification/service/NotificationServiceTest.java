@@ -52,7 +52,7 @@ public class NotificationServiceTest {
 
         RoutePoint point = new RoutePoint(52.43, 16.91, 100L);
         RoutePoint point2 = new RoutePoint(52.42, 16.91, 100L);
-        RoutePoint point3 = new RoutePoint(52.41, 16.91, 100L);
+        RoutePoint point3 = new RoutePoint(52.4084754, 16.9035859, 100L);
         RoutePoint point4 = new RoutePoint(52.40, 16.91, 100L);
         RoutePoint point5 = new RoutePoint(52.39, 16.91, 100L);
 //
