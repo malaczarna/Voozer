@@ -131,17 +131,5 @@ public class UserController {
         return userMapperService.mapUser(userService.stopDestination(new Identity(request).getUserId()));
     }
 
-    @RequestMapping(
-            value = "active/drivers/get-in-radius-command",
-            method = RequestMethod.POST,
-            produces = "application/json"
-    )
-    public List<UserMessage> getActiveDriversInRadius(@RequestBody Double radius, HttpServletRequest request) throws FactoryException,TransformException {
-
-        return userService.getDriversInRadiusInMeters(new Identity(request).getUserId(), radius).stream()
-                .map(userMapperService::mapUser)
-                .collect(Collectors.toList());
-    }
-
 
 }

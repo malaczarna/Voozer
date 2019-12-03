@@ -1,10 +1,9 @@
 package pl.jarosyjarosy.yougetin.notification.endpoint;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.operation.TransformException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import pl.jarosyjarosy.yougetin.auth.model.Identity;
 import pl.jarosyjarosy.yougetin.notification.endpoint.model.NotificationMessage;
 import pl.jarosyjarosy.yougetin.notification.service.NotificationMapperService;
 import pl.jarosyjarosy.yougetin.notification.service.NotificationService;
@@ -26,21 +25,12 @@ public class NotificationController {
     }
 
     @RequestMapping(
-            value = "/{id}",
-            method = RequestMethod.GET,
-            produces = "application/json"
-    )
-    public NotificationMessage get(@PathVariable Long id, HttpServletRequest request) {
-
-        return notificationMapperService.mapNotification(notificationService.get(id));
-    }
-
-    @RequestMapping(
             method = RequestMethod.POST,
             produces = "application/json"
     )
-    public NotificationMessage create(@RequestBody NotificationMessage notificationMessage, HttpServletRequest request) throws TransformException, FactoryException, FirebaseMessagingException {
+    public NotificationMessage send(@RequestBody NotificationMessage notificationMessage, HttpServletRequest request) throws FirebaseMessagingException {
 
-        return notificationMapperService.mapNotification(notificationService.create(notificationMapperService.mapNotificationMessage(notificationMessage)));
+        return notificationMapperService.mapNotification(notificationService.send(notificationMapperService.mapNotificationMessage(notificationMessage), new Identity(request).getUserId()));
     }
+
 }

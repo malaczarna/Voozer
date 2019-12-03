@@ -32,11 +32,20 @@ public class UserRegistrationTokenController {
             produces = "application/json"
     )
     public UserRegistrationTokenMessage save(@RequestBody String token, HttpServletRequest request) {
+        Long userId = new Identity(request).getUserId();
+        fcmService.deleteRegistrationTokensByUser(userId);
 
         UserRegistrationToken userRegistrationToken = new UserRegistrationToken();
-        userRegistrationToken.setUserId(new Identity(request).getUserId());
-        userRegistrationToken.setRegistrationToken(token);
+        userRegistrationToken.setUserId(userId);
+        userRegistrationToken.setRegistrationToken(token.replace("\"", ""));
 
         return userRegistrationTokenMapperService.mapUserRegistrationToken(fcmService.saveRegistrationToken(userRegistrationToken));
+    }
+
+    @RequestMapping(
+            method = RequestMethod.DELETE
+    )
+    public void delete(HttpServletRequest request) {
+        fcmService.deleteRegistrationTokensByUser(new Identity(request).getUserId());
     }
 }

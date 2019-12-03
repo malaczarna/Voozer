@@ -10,4 +10,6 @@ import java.util.List;
 public interface UserRegistrationTokenRepository extends CrudRepository<UserRegistrationToken, Long>, QueryByExampleExecutor<UserRegistrationToken> {
     @Query(value = "select registration_token from user_registration_tokens where user_id = ?1", nativeQuery = true)
     List<String> findTokensByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
 }

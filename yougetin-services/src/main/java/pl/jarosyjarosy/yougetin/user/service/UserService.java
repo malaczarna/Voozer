@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.jarosyjarosy.yougetin.destination.model.Destination;
+import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
 import pl.jarosyjarosy.yougetin.routepoint.model.RoutePoint;
 import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
@@ -21,6 +22,7 @@ import pl.jarosyjarosy.yougetin.user.model.Role;
 import pl.jarosyjarosy.yougetin.user.model.User;
 import pl.jarosyjarosy.yougetin.user.repository.RoleRepository;
 import pl.jarosyjarosy.yougetin.user.repository.UserRepository;
+import sun.security.krb5.internal.crypto.Des;
 
 import javax.transaction.Transactional;
 import java.time.Clock;
@@ -180,24 +182,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public List<User> getDriversInRadiusInMeters(Long id, Double radius) throws FactoryException, TransformException {
-        LOGGER.info("LOGGER: get active drivers in {} radius", radius);
-        Position userPosition = getUserPosition(id);
-
-        List<User> driversInRadius = new ArrayList<>();
-
-        for (User driver : getActiveDrivers()) {
-            Position driverPosition = new Position(driver.getLat(), driver.getLng());
-            Double distance = calculateDistanceBetweenTwoPositions(userPosition, driverPosition);
-            LOGGER.info("LOGGER: get active drivers in {} radius - actual driver id {}: {} m", radius, driver.getId(), distance);
-            if (distance < radius) {
-                driversInRadius.add(driver);
-            }
-        }
-
-        return sortDriversByCompatibility(get(id), driversInRadius);
-    }
-
     public Double calculateDistanceBetweenTwoPositions(Position pos1, Position pos2) throws TransformException, FactoryException {
         CoordinateReferenceSystem crs = CRS.parseWKT(EPSG4326);
 
@@ -208,36 +192,28 @@ public class UserService {
         return gc.getOrthodromicDistance();
     }
 
-    private Double calculateDriverCompatibilty(List<RoutePoint> userRoute, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
-        if (userRoute.size() > 0) {
-            long score = 0L;
-            for (RoutePoint userPoint : userRoute) {
-                for (RoutePoint driverPoint : driverRoute) {
-                    if (calculateDistanceBetweenTwoPositions(new Position(userPoint.getLat(), userPoint.getLng()),
-                            new Position(driverPoint.getLat(), driverPoint.getLng())) < 250D) {
-                        score++;
-                        break;
-                    }
-                }
-            }
-            LOGGER.info("LOGGER: calculate driver compatibilty - {}%", (double) score / userRoute.size() * 100);
-            return (double) score / userRoute.size() * 100;
-        } else {
-            LOGGER.info("LOGGER: calculate driver compatibilty - 0%");
-            return 0D;
-        }
+//    private Double getDistanceBetweenDestinationAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
+//
+//        Position passengerDestinationPoint = new Position(destinationService.get(passenger.getDestinationId()).getLat(), destinationService.get(passenger.getDestinationId()).getLng());
+//
+//        return calculateMinimumDistanceToRoute(driverRoute, passengerDestinationPoint);
+//    }
+
+    private Double getDistanceBetweenPassengerAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
+        return calculateMinimumDistanceToRoute(driverRoute, getUserPosition(passenger.getId()));
     }
 
-    private List<User> sortDriversByCompatibility(User passenger, List<User> drivers) throws TransformException, FactoryException {
-        HashMap<User, Double> driversMap = new HashMap<>();
-        for (User driver : drivers) {
-            LOGGER.info("LOGGER: calculating driver {} compatibilty", driver.getId());
-            driversMap.put(driver, calculateDriverCompatibilty(routePointService.getRoute(passenger.getDestinationId()),
-                    routePointService.getRoute(driver.getDestinationId())));
+    public Double calculateMinimumDistanceToRoute(List<RoutePoint> driverRoute, Position position) throws TransformException, FactoryException {
+        Double distance = -1D;
+        Double distanceToCheck;
+        for (RoutePoint point: driverRoute) {
+            distanceToCheck = calculateDistanceBetweenTwoPositions(new Position(point.getLat(), point.getLng()), position);
+            if (distance >  distanceToCheck || distance == -1) {
+                distance = distanceToCheck;
+            }
         }
 
-        return driversMap.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue())).map(Map.Entry::getKey).collect(Collectors.toList());
-
+        return distance;
     }
 
 }

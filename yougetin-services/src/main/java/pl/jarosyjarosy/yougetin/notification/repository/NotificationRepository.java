@@ -12,4 +12,6 @@ import javax.transaction.Transactional;
 @Repository
 @Transactional
 public interface NotificationRepository extends CrudRepository<Notification, Long>, QueryByExampleExecutor<Notification> {
+
+    Notification getByDriverIdAndPassengerId(Long driverId, Long passengerId);
 }
