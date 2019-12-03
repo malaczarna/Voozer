@@ -27,11 +27,18 @@ class NotificationService: FirebaseMessagingService() {
     }
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        val title = remoteMessage.notification?.title
-        val body = remoteMessage.notification?.body
+        val data = remoteMessage.data
+        val driverId = data["driverId"]
+        val passengerId = data["passengerId"]
+        val meetingLat = data["meetingLat"]
+        val meetingLng = data["meetingLng"]
+        val notificationType = data["type"]
         val intent = Intent(NOTIFICATION_BROADCAST_RECEIVER_ACTION)
-        intent.putExtra("title", title)
-        intent.putExtra("body", body)
+        intent.putExtra("driverId", driverId)
+        intent.putExtra("passengerId", passengerId)
+        intent.putExtra("meetingLat", meetingLat)
+        intent.putExtra("meetingLng", meetingLng)
+        intent.putExtra("type", notificationType)
         this.sendBroadcast(intent)
     }
 }

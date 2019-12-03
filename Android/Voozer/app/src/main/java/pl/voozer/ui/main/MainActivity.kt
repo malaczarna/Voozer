@@ -13,6 +13,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.location.Location
+import android.net.Uri
 import android.os.Handler
 import android.util.Log
 import android.view.MenuItem
@@ -20,6 +21,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
@@ -78,6 +80,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private var fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
     private var lastRoute: Polyline? = null
     private var notificationReceiver: BroadcastReceiver? = null
+    private var waitingDialog: MaterialDialog? = null
     private var meetingLat: Double = 0.0
     private var meetingLng: Double = 0.0
     private val AUTOCOMPLETE_REQUEST_CODE = 1
@@ -125,9 +128,23 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         rvDriversList.layoutManager = LinearLayoutManager(applicationContext)
         rvDriversList.adapter = DriversAdapter(drivers = drivers, context = applicationContext, listener = object: DriversAdapter.OnItemClickListener {
             override fun onDriverClick(driver: User) {
-                controller.sendNotification(NotificationMessage(passengerId = user.id, driverId = driver.id))
-                splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(driver.lat, driver.lng), 12f))
+                controller.sendNotification(NotificationMessage(passengerId = user.id, driverId = driver.id, notificationType = NotificationType.ASK))
+                splMain.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+                waitingDialog = MaterialDialog(this@MainActivity).show {
+                    title(text = "Oczekiwanie na odpowiedz kierowcy...")
+                    cancelOnTouchOutside(false)
+                    noAutoDismiss()
+                    negativeButton(text = "Anuluj") {
+                        dismiss()
+                        controller.sendNotification(
+                            NotificationMessage(
+                                passengerId = user.id,
+                                driverId = driver.id,
+                                notificationType = NotificationType.DECLINE
+                            )
+                        )
+                    }
+                }
             }
         })
     }
@@ -167,10 +184,21 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
 
     override fun updateSpecificUser(user: User) {
         specificUser = user
-        MaterialDialog(this@MainActivity).show {
-            title(text = "Użytkownik ${specificUser.name} prosi o podwóżkę.")
-            message(text = "Współrzędne spotkania to $meetingLat:$meetingLng, powodzenia!")
+        tvSplTitle.text = "Użytkownik ${specificUser.name} prosi o podwóżkę."
+        llDrivers.visibility = View.GONE
+        llPassengers.visibility = View.VISIBLE
+        splMain.anchorPoint = 0.5f
+        splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+        ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
+            duration = 300
+            start()
         }
+        Handler().postDelayed(
+            {
+                splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+            },300L
+        )
+       placePassengerMarkerOnMap(LatLng(meetingLat, meetingLng))
     }
 
     override fun setRoute(direction: Direction) {
@@ -263,15 +291,15 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                                 //controller.loadDrivers(radius = RADIUS)
                                 showProgressDialog()
                                 controller.loadDrivers()
-                                splDrivers.anchorPoint = 0.7f
-                                splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
-                                ObjectAnimator.ofFloat(llFabButtons, "translationY", -splDrivers.panelHeight.toFloat()).apply {
+                                splMain.anchorPoint = 0.7f
+                                splMain.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+                                ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
                                     duration = 300
                                     start()
                                 }
                                 Handler().postDelayed(
                                     {
-                                        splDrivers.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+                                        splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
                                     },300L
                                 )
                             }
@@ -305,11 +333,32 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         intent?.let { newIntent ->
             if(newIntent.action == SHOW_MESSAGE_ACTION) {
                 newIntent.extras?.let { bundle ->
+                    val driverId = bundle.getString("driverId", "0")
                     val passengerId = bundle.getString("passengerId", "0")
+                    val notificationType = bundle.getString("type", "0")
                     meetingLat = bundle.getString("meetingLat", "0.0").toDouble()
                     meetingLng = bundle.getString("meetingLng", "0.0").toDouble()
-                    showProgressDialog()
-                    controller.loadSpecificUser(passengerId)
+                    when (notificationType) {
+                        NotificationType.ASK.name -> {
+                            controller.loadSpecificUser(passengerId)
+                        }
+                        NotificationType.ACCEPT.name -> {
+                            waitingDialog?.let { it.dismiss() }
+                            Toast.makeText(this, "Kierwca zaakceptował przjażdżkę!", Toast.LENGTH_LONG).show()
+
+                        }
+                        NotificationType.DECLINE.name -> {
+                            when (user.profile) {
+                                Profile.DRIVER -> {
+                                    Toast.makeText(this, "Pasażer odrzucił prośbę!", Toast.LENGTH_LONG).show()
+                                }
+                                Profile.PASSENGER -> {
+                                    Toast.makeText(this, "Kierwca anulował przjazd!", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    }
+                    intent = null
                 }
             }
         }
@@ -318,23 +367,20 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     override fun onPause() {
         super.onPause()
         notificationReceiver?.let { unregisterReceiver(it) }
-        if(requestingLocationUpdates) {
-            stopLocationUpdates()
-        }
     }
 
     override fun onBackPressed() {
         when {
-            splDrivers.panelState == SlidingUpPanelLayout.PanelState.EXPANDED -> {
-                splDrivers.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+            splMain.panelState == SlidingUpPanelLayout.PanelState.EXPANDED -> {
+                splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
             }
-            splDrivers.panelState == SlidingUpPanelLayout.PanelState.ANCHORED -> {
-                splDrivers.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+            splMain.panelState == SlidingUpPanelLayout.PanelState.ANCHORED -> {
+                splMain.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
             }
-            splDrivers.panelState == SlidingUpPanelLayout.PanelState.COLLAPSED -> {
+            splMain.panelState == SlidingUpPanelLayout.PanelState.COLLAPSED -> {
                 removeMarkers()
                 tvSearch.text = getString(R.string.search_bar_title)
-                splDrivers.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
+                splMain.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
                 ObjectAnimator.ofFloat(llFabButtons, "translationY", 0f).apply {
                     duration = 1000
                     start()
@@ -366,11 +412,30 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private fun initNotificationReceiver() {
         notificationReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                val title = intent.getStringExtra("title")
-                val body = intent.getStringExtra("body")
-                MaterialDialog(this@MainActivity).show {
-                    title(text = title)
-                    message(text = body)
+                val driverId = intent.getStringExtra("driverId")
+                val passengerId = intent.getStringExtra("passengerId")
+                val notificationType = intent.getStringExtra("type")
+                meetingLat = intent.getStringExtra("meetingLat").toDouble()
+                meetingLng = intent.getStringExtra("meetingLng").toDouble()
+                when (notificationType) {
+                    NotificationType.ASK.name -> {
+                        controller.loadSpecificUser(passengerId)
+                    }
+                    NotificationType.ACCEPT.name -> {
+                        waitingDialog?.dismiss()
+                        Toast.makeText(applicationContext, "Kierwca zaakceptował przjażdżkę!", Toast.LENGTH_LONG).show()
+                    }
+                    NotificationType.DECLINE.name -> {
+                        when (user.profile) {
+                            Profile.DRIVER -> {
+                                Toast.makeText(applicationContext, "Pasażer odrzucił prośbę!", Toast.LENGTH_LONG).show()
+                            }
+                            Profile.PASSENGER -> {
+                                waitingDialog?.dismiss()
+                                Toast.makeText(applicationContext, "Kierwca anulował przjazd!", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -447,7 +512,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                             startActivity(Intent(applicationContext, MainActivity::class.java))
                             finish()
                         }
-
                         false -> {
                             SharedPreferencesHelper.setMainTheme(applicationContext, true)
                             startActivity(Intent(applicationContext, MainActivity::class.java))
@@ -487,6 +551,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 fabCancelRide.show()
             }
             btnAcceptDestination.isEnabled = false
+            val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + destination.lat +"," + destination.lng + "&travelmode=driving")
+            val mapIntent: Intent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
+            mapIntent.setPackage("com.google.android.apps.maps")
+            startActivity(mapIntent)
         }
         fabCancelRide.setOnClickListener {
             MaterialDialog(this).show {
@@ -516,6 +584,16 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     }
                 }
             }
+        }
+        btnAcceptPassenger.setOnClickListener {
+            controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.ACCEPT))
+            val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + destination.lat +"," + destination.lng + "&waypoints=" +  meetingLat +"," + meetingLng + "&travelmode=driving")
+            val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
+            mapIntent.setPackage("com.google.android.apps.maps")
+            startActivity(mapIntent)
+        }
+        btnCancelPassenger.setOnClickListener {
+            controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.DECLINE))
         }
     }
 
@@ -590,6 +668,11 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     }
 
     private fun placeDriverMarkerOnMap(location: LatLng) {
+        val markerOptions = MarkerOptions().position(location).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car_side))
+        googleMap.addMarker(markerOptions)
+    }
+
+    private fun placePassengerMarkerOnMap(location: LatLng) {
         val markerOptions = MarkerOptions().position(location).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car_side))
         googleMap.addMarker(markerOptions)
     }

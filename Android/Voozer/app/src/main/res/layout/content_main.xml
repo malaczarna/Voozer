@@ -9,7 +9,7 @@
               tools:context=".ui.main.MainActivity">
 
     <com.sothree.slidinguppanel.SlidingUpPanelLayout
-            android:id="@+id/splDrivers"
+            android:id="@+id/splMain"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="bottom"
@@ -20,6 +20,7 @@
             app:umanoShadowHeight="0dp">
 
         <FrameLayout
+                android:id="@+id/splFirstLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -143,7 +144,7 @@
         </FrameLayout>
 
         <LinearLayout
-                android:id="@+id/llDrivers"
+                android:id="@+id/splSecondLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/round_corners"
@@ -159,6 +160,7 @@
                     android:background="@drawable/round_view"/>
 
             <TextView
+                    android:id="@+id/tvSplTitle"
                     android:text="@string/drivers_list_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -171,24 +173,100 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="21dp"/>
 
-            <TextView
-                    android:id="@+id/tvNoDrivers"
+            <LinearLayout
+                    android:id="@+id/llDrivers"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    android:textAlignment="center"
-                    android:textColor="@android:color/black"
-                    android:layout_margin="21dp"
-                    android:alpha="0.3"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                <TextView
+                        android:id="@+id/tvNoDrivers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"
+                        android:textAlignment="center"
+                        android:textColor="@android:color/black"
+                        android:layout_margin="21dp"
+                        android:alpha="0.3"
+                        android:visibility="gone"
+                        android:text="Brak dostępnych kierowców :("/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvDriversList"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                </androidx.recyclerview.widget.RecyclerView>
+
+            </LinearLayout>
+
+            <LinearLayout
+                    android:id="@+id/llPassengers"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:visibility="gone"
-                    android:text="Brak dostępnych kierowców :("/>
+                    android:orientation="vertical">
 
-            <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvDriversList"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                <ImageView
+                        android:id="@+id/ivPassengerPhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="12dp"
+                        android:src="@drawable/ic_walking"/>
 
-            </androidx.recyclerview.widget.RecyclerView>
+                <TextView
+                        android:id="@+id/tvPassengerPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"
+                        android:textAlignment="textStart"
+                        android:textColor="@android:color/black"
+                        android:layout_margin="12dp"
+                        android:text="111-222-333"/>
+
+                <TextView
+                        android:id="@+id/tvMeetingPoint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"
+                        android:textAlignment="textStart"
+                        android:textColor="@android:color/black"
+                        android:layout_margin="12dp"
+                        android:text="Aleje Solidarności"/>
+
+                <LinearLayout
+                        android:id="@+id/llPassengerButtons"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                    <Button
+                            android:id="@+id/btnAcceptPassenger"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:background="@color/colorPrimary"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginEnd="16dp"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:textColor="@android:color/white"
+                            android:layout_weight="1"
+                            android:text="akceptuj"/>
+
+                    <Button
+                            android:id="@+id/btnCancelPassenger"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:background="@android:color/holo_red_dark"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginEnd="16dp"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:textColor="@android:color/white"
+                            android:layout_weight="1"
+                            android:text="anuluj"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
 
