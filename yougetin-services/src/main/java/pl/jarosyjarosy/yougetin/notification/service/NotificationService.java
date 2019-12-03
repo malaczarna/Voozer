@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import pl.jarosyjarosy.yougetin.destination.model.Destination;
+import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
 import pl.jarosyjarosy.yougetin.fcm.service.FCMService;
 import pl.jarosyjarosy.yougetin.notification.model.Notification;
 import pl.jarosyjarosy.yougetin.notification.model.NotificationType;
@@ -16,20 +18,25 @@ import pl.jarosyjarosy.yougetin.user.model.Profile;
 import pl.jarosyjarosy.yougetin.user.model.User;
 import pl.jarosyjarosy.yougetin.user.service.UserService;
 
+import java.util.List;
+
 
 @Component
 public class NotificationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TripService.class);
 
     private NotificationRepository notificationRepository;
+    private DestinationService destinationService;
     private UserService userService;
     private FCMService fcmService;
 
     @Autowired
     NotificationService(NotificationRepository notificationRepository,
+                        DestinationService destinationService,
                         UserService userService,
                         FCMService fcmService) {
         this.notificationRepository = notificationRepository;
+        this.destinationService = destinationService;
         this.userService = userService;
         this.fcmService = fcmService;
     }
@@ -45,29 +52,29 @@ public class NotificationService {
 
     public Notification send(Notification notification, Long userId) throws FirebaseMessagingException {
         User user = userService.get(userId);
-        Notification baseNotification = notificationRepository.getByDriverIdAndPassengerId(notification.getDriverId(), notification.getPassengerId());
+        List<Notification> baseNotification = notificationRepository.getAllByDriverIdAndPassengerIdOrderByIdDesc(notification.getDriverId(), notification.getPassengerId());
         if (notification.getType().equals(NotificationType.ASK)) {
             return creteAndSend(notification);
         }
         if (notification.getType().equals(NotificationType.ACCEPT)) {
-            if (baseNotification == null) {
+            if (baseNotification.isEmpty()) {
                 throw new RecordNotFoundException();
             }
-            acceptRequest(baseNotification);
+            acceptRequest(baseNotification.get(0));
             return notification;
         }
         if (notification.getType().equals(NotificationType.DECLINE) && user.getCurrentProfile().equals(Profile.DRIVER)) {
-            if (baseNotification == null) {
+            if (baseNotification.isEmpty()) {
                 throw new RecordNotFoundException();
             }
-            declineRequest(baseNotification);
+            declineRequest(baseNotification.get(0));
             return notification;
         }
         if (notification.getType().equals(NotificationType.DECLINE) && user.getCurrentProfile().equals(Profile.PASSENGER)) {
-            if (baseNotification == null) {
+            if (baseNotification.isEmpty()) {
                 throw new RecordNotFoundException();
             }
-            stopRequest(baseNotification);
+            stopRequest(baseNotification.get(0));
             return notification;
         }
 

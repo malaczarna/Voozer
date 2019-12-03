@@ -43,7 +43,11 @@ public class JwtFilterService extends GenericFilterBean {
                 && !request.getMethod().equals("OPTIONS")
                 && !request.getRequestURI().startsWith("/error")
                 && !request.getRequestURI().startsWith("/favicon.ico")
-                && !request.getRequestURI().startsWith("/yougetin-services/swagger-ui.html")
+                && !request.getRequestURI().startsWith("/swagger")
+                && !request.getRequestURI().startsWith("/webjars")
+                && !request.getRequestURI().startsWith("/v2/api-docs")
+                && !request.getRequestURI().startsWith("/csrf")
+                && !request.getRequestURI().equals("/")
                 && !request.getRequestURI().startsWith("/health")
                 && !request.getRequestURI().startsWith("/open")
                 && !request.getRequestURI().startsWith("/auth/set-cookie")) {

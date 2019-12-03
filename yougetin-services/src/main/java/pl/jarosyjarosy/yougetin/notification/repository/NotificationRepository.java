@@ -7,11 +7,12 @@ import org.springframework.stereotype.Repository;
 import pl.jarosyjarosy.yougetin.notification.model.Notification;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @Qualifier("notification")
 @Repository
 @Transactional
 public interface NotificationRepository extends CrudRepository<Notification, Long>, QueryByExampleExecutor<Notification> {
 
-    Notification getByDriverIdAndPassengerId(Long driverId, Long passengerId);
+    List<Notification> getAllByDriverIdAndPassengerIdOrderByIdDesc(Long driverId, Long passengerId);
 }
