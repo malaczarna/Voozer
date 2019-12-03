@@ -50,14 +50,23 @@ public class NotificationService {
             return creteAndSend(notification);
         }
         if (notification.getType().equals(NotificationType.ACCEPT)) {
+            if (baseNotification == null) {
+                throw new RecordNotFoundException();
+            }
             acceptRequest(baseNotification);
             return notification;
         }
         if (notification.getType().equals(NotificationType.DECLINE) && user.getCurrentProfile().equals(Profile.DRIVER)) {
+            if (baseNotification == null) {
+                throw new RecordNotFoundException();
+            }
             declineRequest(baseNotification);
             return notification;
         }
         if (notification.getType().equals(NotificationType.DECLINE) && user.getCurrentProfile().equals(Profile.PASSENGER)) {
+            if (baseNotification == null) {
+                throw new RecordNotFoundException();
+            }
             stopRequest(baseNotification);
             return notification;
         }
