@@ -29,8 +29,6 @@ public class User {
     private Long destinationId;
     private Boolean blocked;
 
-    private Long travelingUserId;
-
     private Double lat;
     private Double lng;
     @Enumerated(EnumType.STRING)
@@ -130,14 +128,6 @@ public class User {
 
     public void setCurrentProfile(Profile currentProfile) {
         this.currentProfile = currentProfile;
-    }
-
-    public Long getTravelingUserId() {
-        return travelingUserId;
-    }
-
-    public void setTravelingUserId(Long travelingUserId) {
-        this.travelingUserId = travelingUserId;
     }
 
     @Override

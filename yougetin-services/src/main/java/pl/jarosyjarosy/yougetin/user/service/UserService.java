@@ -216,11 +216,4 @@ public class UserService {
         return distance;
     }
 
-    @Transactional
-    public User setTravelingId(Long id, Long travelingId) {
-        User user = get(id);
-        user.setTravelingUserId(travelingId);
-        return userRepository.save(user);
-    }
-
 }

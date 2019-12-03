@@ -84,7 +84,7 @@ public class NotificationService {
         Position passengerPos = userService.getUserPosition(passengerId);
         User driver = userService.get(driverId);
 
-        return new Position(52.41, 16.91);
+        return new Position(52.4084754, 16.9035859);
     }
 
     private void declineRequest(Notification notification) throws FirebaseMessagingException {
@@ -98,7 +98,6 @@ public class NotificationService {
     private void acceptRequest(Notification notification) throws FirebaseMessagingException {
         LOGGER.info("LOGGER: send accept from {} to {}", notification.getDriverId(), notification.getPassengerId());
 
-        userService.setTravelingId(notification.getDriverId(), notification.getPassengerId());
         notificationRepository.deleteById(notification.getId());
 
         fcmService.sendAcceptanceToPassenger(notification, this.userService.get(notification.getDriverId()).getName());
