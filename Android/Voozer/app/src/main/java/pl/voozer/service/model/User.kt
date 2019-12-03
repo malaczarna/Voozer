@@ -15,7 +15,7 @@ data class User(
     @SerializedName("createDate")
     val createDate: Date,
     @SerializedName("destination")
-    val destination: Destination,
+    var destination: Destination,
     @SerializedName("lat")
     val lat: Double,
     @SerializedName("lng")

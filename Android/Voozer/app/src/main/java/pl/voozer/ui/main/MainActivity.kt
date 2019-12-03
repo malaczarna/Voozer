@@ -215,6 +215,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
         lastRoute = googleMap.addPolyline(options)
         destination = Destination(name = place.name!!, lat = place.latLng!!.latitude, lng = place.latLng!!.longitude, route = route)
+        user.destination = destination
     }
 
     override fun getLayoutResId(): Int {
@@ -345,7 +346,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         NotificationType.ACCEPT.name -> {
                             waitingDialog?.let { it.dismiss() }
                             Toast.makeText(this, "Kierwca zaakceptował przjażdżkę!", Toast.LENGTH_LONG).show()
-
+                            val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$meetingLat,$meetingLng&travelmode=walking")
+                            val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
+                            mapIntent.setPackage("com.google.android.apps.maps")
+                            startActivity(mapIntent)
                         }
                         NotificationType.DECLINE.name -> {
                             when (user.profile) {
@@ -424,15 +428,21 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     NotificationType.ACCEPT.name -> {
                         waitingDialog?.dismiss()
                         Toast.makeText(applicationContext, "Kierwca zaakceptował przjażdżkę!", Toast.LENGTH_LONG).show()
+                        val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$meetingLat,$meetingLng&travelmode=walking")
+                        val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
+                        mapIntent.setPackage("com.google.android.apps.maps")
+                        startActivity(mapIntent)
                     }
                     NotificationType.DECLINE.name -> {
                         when (user.profile) {
                             Profile.DRIVER -> {
                                 Toast.makeText(applicationContext, "Pasażer odrzucił prośbę!", Toast.LENGTH_LONG).show()
+                                splMain.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
                             }
                             Profile.PASSENGER -> {
                                 waitingDialog?.dismiss()
                                 Toast.makeText(applicationContext, "Kierwca anulował przjazd!", Toast.LENGTH_LONG).show()
+                                splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
                             }
                         }
                     }
@@ -587,7 +597,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
         btnAcceptPassenger.setOnClickListener {
             controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.ACCEPT))
-            val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + destination.lat +"," + destination.lng + "&waypoints=" +  meetingLat +"," + meetingLng + "&travelmode=driving")
+            val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + user.destination.lat +"," + user.destination.lng + "&waypoints=" +  meetingLat +"," + meetingLng + "&travelmode=driving")
             val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
             mapIntent.setPackage("com.google.android.apps.maps")
             startActivity(mapIntent)
