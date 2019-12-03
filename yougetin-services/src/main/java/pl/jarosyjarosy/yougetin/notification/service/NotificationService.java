@@ -1,24 +1,21 @@
 package pl.jarosyjarosy.yougetin.notification.service;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.operation.TransformException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.jarosyjarosy.yougetin.fcm.service.FCMService;
 import pl.jarosyjarosy.yougetin.notification.model.Notification;
+import pl.jarosyjarosy.yougetin.notification.model.NotificationType;
 import pl.jarosyjarosy.yougetin.notification.repository.NotificationRepository;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
-import pl.jarosyjarosy.yougetin.routepoint.model.RoutePoint;
-import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
 import pl.jarosyjarosy.yougetin.trip.service.TripService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
+import pl.jarosyjarosy.yougetin.user.model.Profile;
 import pl.jarosyjarosy.yougetin.user.model.User;
 import pl.jarosyjarosy.yougetin.user.service.UserService;
 
-import java.util.List;
 
 @Component
 public class NotificationService {
@@ -27,17 +24,14 @@ public class NotificationService {
     private NotificationRepository notificationRepository;
     private UserService userService;
     private FCMService fcmService;
-    private final RoutePointService routePointService;
 
     @Autowired
     NotificationService(NotificationRepository notificationRepository,
                         UserService userService,
-                        FCMService fcmService,
-                        RoutePointService routePointService) {
+                        FCMService fcmService) {
         this.notificationRepository = notificationRepository;
         this.userService = userService;
         this.fcmService = fcmService;
-        this.routePointService = routePointService;
     }
 
     public Notification get(Long id) {
@@ -49,7 +43,39 @@ public class NotificationService {
         }
     }
 
-    public Notification create(Notification notification) throws TransformException, FactoryException, FirebaseMessagingException {
+    public Notification send(Notification notification, Long userId) throws FirebaseMessagingException {
+        User user = userService.get(userId);
+        Notification baseNotification = notificationRepository.getByDriverIdAndPassengerId(notification.getDriverId(), notification.getPassengerId());
+        if (notification.getType().equals(NotificationType.ASK)) {
+            return creteAndSend(notification);
+        }
+        if (notification.getType().equals(NotificationType.ACCEPT)) {
+            if (baseNotification == null) {
+                throw new RecordNotFoundException();
+            }
+            acceptRequest(baseNotification);
+            return notification;
+        }
+        if (notification.getType().equals(NotificationType.DECLINE) && user.getCurrentProfile().equals(Profile.DRIVER)) {
+            if (baseNotification == null) {
+                throw new RecordNotFoundException();
+            }
+            declineRequest(baseNotification);
+            return notification;
+        }
+        if (notification.getType().equals(NotificationType.DECLINE) && user.getCurrentProfile().equals(Profile.PASSENGER)) {
+            if (baseNotification == null) {
+                throw new RecordNotFoundException();
+            }
+            stopRequest(baseNotification);
+            return notification;
+        }
+
+        return null;
+
+    }
+
+    private Notification creteAndSend(Notification notification) throws FirebaseMessagingException {
         LOGGER.info("LOGGER: create notification from {} to {}", notification.getPassengerId(), notification.getDriverId());
         Position meetingPosiition = calculateMeetingPoint(notification.getDriverId(), notification.getPassengerId());
 
@@ -58,25 +84,39 @@ public class NotificationService {
 
         Notification savedNotification = notificationRepository.save(notification);
 
-        fcmService.sendPushNotificationToDriver(savedNotification);
+        fcmService.sendPushNotificationToDriver(savedNotification, this.userService.get(notification.getPassengerId()).getName());
 
         return savedNotification;
     }
 
-    public Position calculateMeetingPoint(Long driverId, Long passengerId) throws TransformException, FactoryException {
+    public Position calculateMeetingPoint(Long driverId, Long passengerId) {
         Position passengerPos = userService.getUserPosition(passengerId);
         User driver = userService.get(driverId);
 
-        RoutePoint closestPoint = new RoutePoint(0D, 0D, 0L);
-        List<RoutePoint> driverRoute = routePointService.getRoute(driver.getDestinationId());
-        for (RoutePoint point : driverRoute) {
-            if (closestPoint.getDestinationId() == 0L || userService.calculateDistanceBetweenTwoPositions(passengerPos, new Position(point.getLat(), point.getLng())) <
-                    userService.calculateDistanceBetweenTwoPositions(passengerPos, new Position(closestPoint.getLat(), closestPoint.getLng()))) {
-                closestPoint = point;
-            }
-        }
+        return new Position(52.4084754, 16.9035859);
+    }
 
+    private void declineRequest(Notification notification) throws FirebaseMessagingException {
+        LOGGER.info("LOGGER: send decline from {} to {}", notification.getDriverId(), notification.getPassengerId());
 
-        return new Position(closestPoint.getLat(), closestPoint.getLng());
+        notificationRepository.deleteById(notification.getId());
+
+        fcmService.sendDeclineToPassenger(notification, this.userService.get(notification.getDriverId()).getName());
+    }
+
+    private void acceptRequest(Notification notification) throws FirebaseMessagingException {
+        LOGGER.info("LOGGER: send accept from {} to {}", notification.getDriverId(), notification.getPassengerId());
+
+        notificationRepository.deleteById(notification.getId());
+
+        fcmService.sendAcceptanceToPassenger(notification, this.userService.get(notification.getDriverId()).getName());
+    }
+
+    private void stopRequest(Notification notification) throws FirebaseMessagingException {
+        LOGGER.info("LOGGER: stop request from {} to {}", notification.getDriverId(), notification.getPassengerId());
+
+        notificationRepository.deleteById(notification.getId());
+
+        fcmService.sendStopRequestNotification(notification, this.userService.get(notification.getPassengerId()).getName());
     }
 }

@@ -17,6 +17,8 @@ public class Notification {
     private Double meetingLat;
     private Double meetingLng;
 
+    private NotificationType type;
+
     public Long getId() {
         return id;
     }
@@ -55,6 +57,14 @@ public class Notification {
 
     public void setMeetingLng(Double meetingLng) {
         this.meetingLng = meetingLng;
+    }
+
+    public NotificationType getType() {
+        return type;
+    }
+
+    public void setType(NotificationType type) {
+        this.type = type;
     }
 
     @Override
