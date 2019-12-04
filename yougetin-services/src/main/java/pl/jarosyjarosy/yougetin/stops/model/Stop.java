@@ -1,17 +1,16 @@
-package pl.jarosyjarosy.yougetin.routepoint.model;
+package pl.jarosyjarosy.yougetin.stops.model;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name = "route_points")
-public class RoutePoint {
+@Table(name = "stops")
+public class Stop {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Double lat;
     private Double lng;
-
-    private Long destinationId;
+    private String name;
 
     public Long getId() {
         return id;
@@ -37,19 +36,11 @@ public class RoutePoint {
         this.lng = lng;
     }
 
-    public Long getDestinationId() {
-        return destinationId;
+    public String getName() {
+        return name;
     }
 
-    public void setDestinationId(Long destinationId) {
-        this.destinationId = destinationId;
-    }
-
-    public RoutePoint(){ }
-
-    public RoutePoint(Double lat, Double lng, Long destinationId) {
-        this.lat = lat;
-        this.lng = lng;
-        this.destinationId = destinationId;
+    public void setName(String name) {
+        this.name = name;
     }
 }

@@ -9,7 +9,7 @@ import java.util.Date;
 @Table(name = "trips")
 public class Trip {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Date createDate;
     private Long passengerId;

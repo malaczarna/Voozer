@@ -8,7 +8,7 @@ import javax.persistence.*;
 @Table(name = "notifications")
 public class Notification {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long passengerId;
