@@ -10,13 +10,6 @@ import pl.jarosyjarosy.yougetin.stops.service.StopService;
 @RestController
 public class TechnicalController implements ErrorController {
 
-    private StopService stopService;
-
-    @Autowired
-    public TechnicalController(StopService stopService) {
-        this.stopService = stopService;
-    }
-
     @RequestMapping(
             value = "/error",
             method = RequestMethod.GET
@@ -31,7 +24,6 @@ public class TechnicalController implements ErrorController {
             method = RequestMethod.GET
     )
     public String ping() {
-        this.stopService.getBusStops();
         return "pong";
     }
 
