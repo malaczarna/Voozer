@@ -17,6 +17,8 @@ public class Notification {
     private Double meetingLat;
     private Double meetingLng;
 
+    private boolean atMeetingPoint;
+
     private NotificationType type;
 
     public Long getId() {
@@ -57,6 +59,14 @@ public class Notification {
 
     public void setMeetingLng(Double meetingLng) {
         this.meetingLng = meetingLng;
+    }
+
+    public boolean isAtMeetingPoint() {
+        return atMeetingPoint;
+    }
+
+    public void setAtMeetingPoint(boolean atMeetingPoint) {
+        this.atMeetingPoint = atMeetingPoint;
     }
 
     public NotificationType getType() {

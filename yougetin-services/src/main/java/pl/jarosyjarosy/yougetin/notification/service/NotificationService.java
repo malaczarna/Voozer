@@ -77,6 +77,20 @@ public class NotificationService {
             stopRequest(baseNotification.get(0));
             return notification;
         }
+        if (notification.getType().equals(NotificationType.MEETING) && user.getCurrentProfile().equals(Profile.PASSENGER)) {
+            if (baseNotification.isEmpty()) {
+                throw new RecordNotFoundException();
+            }
+            passengerAtMeetingPoint(baseNotification.get(0));
+            return notification;
+        }
+        if (notification.getType().equals(NotificationType.MEETING) && user.getCurrentProfile().equals(Profile.DRIVER)) {
+            if (baseNotification.isEmpty()) {
+                throw new RecordNotFoundException();
+            }
+            driverAtMeetingPoint(baseNotification.get(0));
+            return notification;
+        }
 
         return null;
 
@@ -114,8 +128,6 @@ public class NotificationService {
     private void acceptRequest(Notification notification) throws FirebaseMessagingException {
         LOGGER.info("LOGGER: send accept from {} to {}", notification.getDriverId(), notification.getPassengerId());
 
-        notificationRepository.deleteById(notification.getId());
-
         fcmService.sendAcceptanceToPassenger(notification, this.userService.get(notification.getDriverId()).getName());
     }
 
@@ -125,5 +137,31 @@ public class NotificationService {
         notificationRepository.deleteById(notification.getId());
 
         fcmService.sendStopRequestNotification(notification, this.userService.get(notification.getPassengerId()).getName());
+    }
+
+    private void passengerAtMeetingPoint(Notification notification) throws FirebaseMessagingException {
+        LOGGER.info("LOGGER: passenger At meeting point from {} to {}", notification.getDriverId(), notification.getPassengerId());
+
+        if (notification.isAtMeetingPoint()) {
+            notificationRepository.deleteById(notification.getId());
+        } else {
+            notification.setAtMeetingPoint(true);
+            notificationRepository.save(notification);
+        }
+
+        fcmService.sendPassengerAtMeetingPointNotification(notification, this.userService.get(notification.getPassengerId()).getName());
+    }
+
+    private void driverAtMeetingPoint(Notification notification) throws FirebaseMessagingException {
+        LOGGER.info("LOGGER: driver At meeting point from {} to {}", notification.getDriverId(), notification.getPassengerId());
+
+        if (notification.isAtMeetingPoint()) {
+            notificationRepository.deleteById(notification.getId());
+        } else {
+            notification.setAtMeetingPoint(true);
+            notificationRepository.save(notification);
+        }
+
+        fcmService.sendDriverAtMeetingPointNotification(notification, this.userService.get(notification.getDriverId()).getName());
     }
 }
