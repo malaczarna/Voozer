@@ -58,6 +58,7 @@ import pl.voozer.ui.adapter.DriversAdapter
 import pl.voozer.ui.login.LoginActivity
 import pl.voozer.utils.*
 import java.util.*
+import kotlin.collections.HashMap
 
 class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener,
@@ -207,14 +208,31 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         val options = PolylineOptions()
         options.color(ContextCompat.getColor(applicationContext, R.color.colorPrimaryDriver))
         options.width(5f)
+
         val points = direction.routes[0].legs[0].steps
         routePoints = points.flatMap { PolyUtil.decode(it.polyline.points) }
-        val route = routePoints.map { Position(lat = it.latitude, lng = it.longitude) }
-        for(point in routePoints) {
+        for (point in routePoints) {
             options.add(point)
         }
+        val route = routePoints.map { Position(lat = it.latitude, lng = it.longitude) }
+        val routePointsTime = HashMap<Position, Int>()
+        points.forEachIndexed { index, steps ->
+            routePointsTime[route[index]] = points.subList(0, index+1).sumBy {
+                it.duration.value
+            }
+        }
+        //Calculating route with time for each point
+        //TODO: Travel mode for passenger and driver in the url query (Time differs)
+        routePointsTime.forEach {
+            Log.d("position-time:", "Position(${it.key.lat}, ${it.key.lng}), ${it.value}")
+        }
         lastRoute = googleMap.addPolyline(options)
-        destination = Destination(name = place.name!!, lat = place.latLng!!.latitude, lng = place.latLng!!.longitude, route = route)
+        destination = Destination(
+            name = place.name!!,
+            lat = place.latLng!!.latitude,
+            lng = place.latLng!!.longitude,
+            route = route
+        )
         user.destination = destination
     }
 
