@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.jarosyjarosy.yougetin.auth.model.Identity;
 import pl.jarosyjarosy.yougetin.destination.endpoint.model.DestinationMessage;
+import pl.jarosyjarosy.yougetin.destination.endpoint.model.PositionWithTime;
 import pl.jarosyjarosy.yougetin.destination.model.Destination;
 import pl.jarosyjarosy.yougetin.destination.service.DestinationMapperService;
 import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
@@ -77,7 +78,7 @@ public class DestinationController {
             method = RequestMethod.GET,
             produces = "application/json"
     )
-    public List<Position> getRoute(@PathVariable Long id, HttpServletRequest request) {
+    public List<PositionWithTime> getRoute(@PathVariable Long id, HttpServletRequest request) {
 
         return routePointMapperService.mapRoute(routePointService.getRoute(id));
     }
@@ -88,7 +89,7 @@ public class DestinationController {
             consumes = "application/json",
             produces = "application/json"
     )
-    public List<Position> saveRoute(@PathVariable Long id, @RequestBody List<Position> positions, HttpServletRequest request) {
+    public List<PositionWithTime> saveRoute(@PathVariable Long id, @RequestBody List<PositionWithTime> positions, HttpServletRequest request) {
 
         return routePointMapperService.mapRoute(routePointService.saveRoute(routePointMapperService.mapRouteMesage(positions, id)));
 

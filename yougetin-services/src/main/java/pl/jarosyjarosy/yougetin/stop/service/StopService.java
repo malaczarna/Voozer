@@ -1,4 +1,4 @@
-package pl.jarosyjarosy.yougetin.stops.service;
+package pl.jarosyjarosy.yougetin.stop.service;
 
 import com.google.gson.Gson;
 import org.slf4j.Logger;
@@ -9,10 +9,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import pl.jarosyjarosy.yougetin.stops.model.Feature;
-import pl.jarosyjarosy.yougetin.stops.model.FeatureList;
-import pl.jarosyjarosy.yougetin.stops.model.Stop;
-import pl.jarosyjarosy.yougetin.stops.repository.StopRepository;
+import pl.jarosyjarosy.yougetin.stop.model.Feature;
+import pl.jarosyjarosy.yougetin.stop.model.FeatureList;
+import pl.jarosyjarosy.yougetin.stop.model.Stop;
+import pl.jarosyjarosy.yougetin.stop.repository.StopRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class StopService {
 
     @Scheduled(cron = "0 0 4 * * wed", zone="Europe/Warsaw")
     public void getBusStops() {
-        LOGGER.info("LOGGER: get bus stops from Poznań API");
+        LOGGER.info("LOGGER: get bus stop from Poznań API");
         final String uri = "http://www.poznan.pl/mim/plan/map_service.html?mtype=pub_transport&co=cluster";
 
         RestTemplate restTemplate = new RestTemplate();
@@ -49,7 +49,7 @@ public class StopService {
     }
 
     private void saveAndMapStopsFromBusStopsFeatures(List<Feature> busStops) {
-        LOGGER.info("LOGGER: saving new bus stops from Poznań API");
+        LOGGER.info("LOGGER: saving new bus stop from Poznań API");
         this.stopRepository.deleteAll();
         List<Stop> stops = new ArrayList<>();
         for (Feature busStop : busStops) {

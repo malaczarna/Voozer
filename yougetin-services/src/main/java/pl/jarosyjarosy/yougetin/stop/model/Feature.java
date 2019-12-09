@@ -1,4 +1,4 @@
-package pl.jarosyjarosy.yougetin.stops.model;
+package pl.jarosyjarosy.yougetin.stop.model;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

@@ -1,9 +1,9 @@
-package pl.jarosyjarosy.yougetin.stops.model;
+package pl.jarosyjarosy.yougetin.stop.model;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name = "stops")
+@Table(name = "stop")
 public class Stop {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
