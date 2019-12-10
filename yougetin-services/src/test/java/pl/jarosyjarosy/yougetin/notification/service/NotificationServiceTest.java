@@ -50,11 +50,11 @@ public class NotificationServiceTest {
         driver.setLng(16.875);
         driver.setDestinationId(200L);
 
-        RoutePoint point = new RoutePoint(52.43, 16.91, 100L);
-        RoutePoint point2 = new RoutePoint(52.42, 16.91, 100L);
-        RoutePoint point3 = new RoutePoint(52.4084754, 16.9035859, 100L);
-        RoutePoint point4 = new RoutePoint(52.40, 16.91, 100L);
-        RoutePoint point5 = new RoutePoint(52.39, 16.91, 100L);
+        RoutePoint point = new RoutePoint(52.43, 16.91, 100L, 100L);
+        RoutePoint point2 = new RoutePoint(52.42, 16.91, 200L, 100L);
+        RoutePoint point3 = new RoutePoint(52.4084754, 16.9035859, 300L, 100L);
+        RoutePoint point4 = new RoutePoint(52.40, 16.91, 400L, 100L);
+        RoutePoint point5 = new RoutePoint(52.39, 16.91, 500L, 100L);
 //
 //        when(userService.get(driver.getId())).thenReturn(driver);
 //        when(userService.getUserPosition(passenger.getId())).thenReturn(new Position(passenger.getLat(), passenger.getLng()));

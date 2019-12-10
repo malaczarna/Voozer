@@ -39,11 +39,11 @@ public class UserServiceTest {
         passenger.setLng(16.87);
         passenger.setDestinationId(100L);
 
-        RoutePoint point = new RoutePoint(52.38, 16.91, 100L);
-        RoutePoint point2 = new RoutePoint(52.39, 16.91, 100L);
-        RoutePoint point3 = new RoutePoint(52.40, 16.91, 100L);
-        RoutePoint point4 = new RoutePoint(52.41, 16.91, 100L);
-        RoutePoint point5 = new RoutePoint(52.42, 16.91, 100L);
+        RoutePoint point = new RoutePoint(52.38, 16.91, 100L, 100L);
+        RoutePoint point2 = new RoutePoint(52.39, 16.91, 200L, 100L);
+        RoutePoint point3 = new RoutePoint(52.40, 16.91, 300L, 100L);
+        RoutePoint point4 = new RoutePoint(52.41, 16.91, 400L, 100L);
+        RoutePoint point5 = new RoutePoint(52.42, 16.91, 500L, 100L);
 
         Double distance = userService.calculateDistanceBetweenTwoPositions(new Position(52.40, 16.87), new Position(52.40, 16.91));
 
