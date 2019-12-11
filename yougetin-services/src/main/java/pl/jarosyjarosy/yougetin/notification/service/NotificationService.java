@@ -12,6 +12,7 @@ import pl.jarosyjarosy.yougetin.notification.model.Notification;
 import pl.jarosyjarosy.yougetin.notification.model.NotificationType;
 import pl.jarosyjarosy.yougetin.notification.repository.NotificationRepository;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
+import pl.jarosyjarosy.yougetin.trip.model.Trip;
 import pl.jarosyjarosy.yougetin.trip.service.TripService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
 import pl.jarosyjarosy.yougetin.user.model.Profile;
@@ -26,17 +27,17 @@ public class NotificationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TripService.class);
 
     private NotificationRepository notificationRepository;
-    private DestinationService destinationService;
+    private TripService tripService;
     private UserService userService;
     private FCMService fcmService;
 
     @Autowired
     NotificationService(NotificationRepository notificationRepository,
-                        DestinationService destinationService,
+                        TripService tripService,
                         UserService userService,
                         FCMService fcmService) {
         this.notificationRepository = notificationRepository;
-        this.destinationService = destinationService;
+        this.tripService = tripService;
         this.userService = userService;
         this.fcmService = fcmService;
     }
@@ -140,10 +141,11 @@ public class NotificationService {
     }
 
     private void passengerAtMeetingPoint(Notification notification) throws FirebaseMessagingException {
-        LOGGER.info("LOGGER: passenger At meeting point from {} to {}", notification.getDriverId(), notification.getPassengerId());
+        LOGGER.info("LOGGER: passenger at meeting point from {} to {}", notification.getDriverId(), notification.getPassengerId());
 
         if (notification.isAtMeetingPoint()) {
             notificationRepository.deleteById(notification.getId());
+            tripService.createFromNotification(notification);
         } else {
             notification.setAtMeetingPoint(true);
             notificationRepository.save(notification);
@@ -153,10 +155,11 @@ public class NotificationService {
     }
 
     private void driverAtMeetingPoint(Notification notification) throws FirebaseMessagingException {
-        LOGGER.info("LOGGER: driver At meeting point from {} to {}", notification.getDriverId(), notification.getPassengerId());
+        LOGGER.info("LOGGER: driver at meeting point from {} to {}", notification.getDriverId(), notification.getPassengerId());
 
         if (notification.isAtMeetingPoint()) {
             notificationRepository.deleteById(notification.getId());
+            tripService.createFromNotification(notification);
         } else {
             notification.setAtMeetingPoint(true);
             notificationRepository.save(notification);

@@ -14,4 +14,6 @@ import java.util.List;
 @Transactional
 public interface RoutePointRepository extends CrudRepository<RoutePoint, Long>, QueryByExampleExecutor<RoutePoint> {
     List<RoutePoint> findAllByDestinationId(Long destinationId);
+
+    void deleteAllByDestinationId(Long id);
 }

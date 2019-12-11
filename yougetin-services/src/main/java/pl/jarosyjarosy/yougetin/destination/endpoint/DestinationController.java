@@ -11,6 +11,8 @@ import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
 import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointMapperService;
 import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
+import pl.jarosyjarosy.yougetin.user.model.User;
+import pl.jarosyjarosy.yougetin.user.service.UserService;
 
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,17 +25,20 @@ public class DestinationController {
 
     private DestinationService destinationService;
     private DestinationMapperService destinationMapperService;
+    private UserService userService;
     private final RoutePointMapperService routePointMapperService;
     private final RoutePointService routePointService;
 
     @Autowired
     public DestinationController(DestinationService destinationService,
                                  DestinationMapperService destinationMapperService,
+                                 UserService userService,
                                  RoutePointMapperService routePointMapperService,
                                  RoutePointService routePointService) {
 
         this.destinationService = destinationService;
         this.destinationMapperService = destinationMapperService;
+        this.userService = userService;
         this.routePointMapperService = routePointMapperService;
         this.routePointService = routePointService;
     }
@@ -55,9 +60,11 @@ public class DestinationController {
     )
     public DestinationMessage save(@RequestBody DestinationMessage destinationMessage, HttpServletRequest request) {
 
-        Destination newDestination = destinationService.validateAndCreate(destinationMapperService.mapDestinationMessage(destinationMessage), new Identity(request).getUserId());
+        User user = userService.get(new Identity(request).getUserId());
 
-        routePointService.saveRoute(routePointMapperService.mapRouteMesage(destinationMessage.getRoute(), newDestination.getId()));
+        Destination newDestination = destinationService.validateAndCreate(destinationMapperService.mapDestinationMessage(destinationMessage), user.getId());
+
+        routePointService.saveRoute(routePointMapperService.mapRouteMesage(destinationMessage.getRoute(), newDestination.getId()), user.getDestinationId());
 
         return destinationMapperService.mapDestination(newDestination);
     }
@@ -82,17 +89,4 @@ public class DestinationController {
 
         return routePointMapperService.mapRoute(routePointService.getRoute(id));
     }
-
-    @RequestMapping(
-            value = "/{id}/route",
-            method = RequestMethod.POST,
-            consumes = "application/json",
-            produces = "application/json"
-    )
-    public List<PositionWithTime> saveRoute(@PathVariable Long id, @RequestBody List<PositionWithTime> positions, HttpServletRequest request) {
-
-        return routePointMapperService.mapRoute(routePointService.saveRoute(routePointMapperService.mapRouteMesage(positions, id)));
-
-    }
-
 }
