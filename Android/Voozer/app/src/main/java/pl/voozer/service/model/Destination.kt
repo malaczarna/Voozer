@@ -9,4 +9,4 @@ data class Destination(@SerializedName("name")
                        @SerializedName("lng")
                        val lng: Double,
                        @SerializedName("route")
-                       val route: List<Position>)
+                       val route: List<PositionWithTime>)

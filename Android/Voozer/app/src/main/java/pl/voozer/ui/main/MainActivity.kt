@@ -58,6 +58,7 @@ import pl.voozer.ui.adapter.DriversAdapter
 import pl.voozer.ui.login.LoginActivity
 import pl.voozer.utils.*
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapReadyCallback,
@@ -215,23 +216,26 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             options.add(point)
         }
         val route = routePoints.map { Position(lat = it.latitude, lng = it.longitude) }
-        val routePointsTime = HashMap<Position, Int>()
+        var routePointsTime: ArrayList<PositionWithTime> = ArrayList()
         points.forEachIndexed { index, steps ->
-            routePointsTime[route[index]] = points.subList(0, index+1).sumBy {
-                it.duration.value
-            }
+            routePointsTime.add(
+                PositionWithTime(
+                    lat = route[index].lat,
+                    lng = route[index].lng,
+                    seconds = points.subList(0, index+1).sumBy {
+                        it.duration.value
+                    }.toDouble()
+                )
+            )
         }
         //Calculating route with time for each point
         //TODO: Travel mode for passenger and driver in the url query (Time differs)
-        routePointsTime.forEach {
-            Log.d("position-time:", "Position(${it.key.lat}, ${it.key.lng}), ${it.value}")
-        }
         lastRoute = googleMap.addPolyline(options)
         destination = Destination(
             name = place.name!!,
             lat = place.latLng!!.latitude,
             lng = place.latLng!!.longitude,
-            route = route
+            route = routePointsTime
         )
         user.destination = destination
     }
