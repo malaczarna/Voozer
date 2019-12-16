@@ -230,15 +230,15 @@ public class UserService {
 
     public Position calculateMeetingPoint(List<RoutePoint> driverRoute, Position passengerPosition) throws TransformException, FactoryException {
         if (driverRoute.size() > 0) {
-            //1
+
             Position closestDriverPoint = new Position(0D,0D);
             Double distance = -1D;
             Double distanceToCheck;
             for (RoutePoint point : driverRoute) {
                 distanceToCheck = calculateDistanceBetweenTwoPositions(new Position(point.getLat(), point.getLng()), passengerPosition);
                 if (distance > distanceToCheck || distance == -1) {
-                    distance = distanceToCheck;
-                    if (checkIfPassengerWontBeLate(distance, point)) {
+                    if (checkIfPassengerWontBeLate(distanceToCheck, point)) {
+                        distance = distanceToCheck;
                         closestDriverPoint = new Position(point.getLat(), point.getLng());
                     }
                 }
