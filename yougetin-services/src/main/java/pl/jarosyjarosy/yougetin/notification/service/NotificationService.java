@@ -1,6 +1,8 @@
 package pl.jarosyjarosy.yougetin.notification.service;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.operation.TransformException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import pl.jarosyjarosy.yougetin.notification.model.Notification;
 import pl.jarosyjarosy.yougetin.notification.model.NotificationType;
 import pl.jarosyjarosy.yougetin.notification.repository.NotificationRepository;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
+import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
 import pl.jarosyjarosy.yougetin.trip.model.Trip;
 import pl.jarosyjarosy.yougetin.trip.service.TripService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
@@ -29,16 +32,19 @@ public class NotificationService {
     private NotificationRepository notificationRepository;
     private TripService tripService;
     private UserService userService;
+    private RoutePointService routePointService;
     private FCMService fcmService;
 
     @Autowired
     NotificationService(NotificationRepository notificationRepository,
                         TripService tripService,
                         UserService userService,
+                        RoutePointService routePointService,
                         FCMService fcmService) {
         this.notificationRepository = notificationRepository;
         this.tripService = tripService;
         this.userService = userService;
+        this.routePointService = routePointService;
         this.fcmService = fcmService;
     }
 
@@ -51,7 +57,7 @@ public class NotificationService {
         }
     }
 
-    public Notification send(Notification notification, Long userId) throws FirebaseMessagingException {
+    public Notification send(Notification notification, Long userId) throws FirebaseMessagingException, TransformException, FactoryException {
         User user = userService.get(userId);
         List<Notification> baseNotification = notificationRepository.getAllByDriverIdAndPassengerIdOrderByIdDesc(notification.getDriverId(), notification.getPassengerId());
         if (notification.getType().equals(NotificationType.ASK)) {
@@ -97,12 +103,12 @@ public class NotificationService {
 
     }
 
-    private Notification creteAndSend(Notification notification) throws FirebaseMessagingException {
+    private Notification creteAndSend(Notification notification) throws FirebaseMessagingException, TransformException, FactoryException {
         LOGGER.info("LOGGER: create notification from {} to {}", notification.getPassengerId(), notification.getDriverId());
-        Position meetingPosiition = calculateMeetingPoint(notification.getDriverId(), notification.getPassengerId());
+        Position meetingPosition = calculateMeetingPoint(notification.getDriverId(), notification.getPassengerId());
 
-        notification.setMeetingLat(meetingPosiition.getLat());
-        notification.setMeetingLng(meetingPosiition.getLng());
+        notification.setMeetingLat(meetingPosition.getLat());
+        notification.setMeetingLng(meetingPosition.getLng());
 
         Notification savedNotification = notificationRepository.save(notification);
 
@@ -111,11 +117,12 @@ public class NotificationService {
         return savedNotification;
     }
 
-    public Position calculateMeetingPoint(Long driverId, Long passengerId) {
+    Position calculateMeetingPoint(Long driverId, Long passengerId) throws TransformException, FactoryException {
+        LOGGER.info("LOGGER: calculate meeting point for driver {} and passenger {}", driverId, passengerId);
         Position passengerPos = userService.getUserPosition(passengerId);
         User driver = userService.get(driverId);
 
-        return new Position(52.4084754, 16.9035859);
+        return userService.calculateMeetingPoint(routePointService.getRoute(driver.getDestinationId()), passengerPos);
     }
 
     private void declineRequest(Notification notification) throws FirebaseMessagingException {
