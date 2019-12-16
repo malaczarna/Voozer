@@ -51,6 +51,7 @@ import com.google.maps.android.PolyUtil
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.android.synthetic.main.content_main.*
 import pl.voozer.BuildConfig
+import pl.voozer.service.bubble.FloatingService
 import pl.voozer.service.model.*
 import pl.voozer.service.model.direction.Direction
 import pl.voozer.service.network.Connection
@@ -59,7 +60,6 @@ import pl.voozer.ui.login.LoginActivity
 import pl.voozer.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener,
@@ -583,8 +583,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 fabCancelRide.show()
             }
             btnAcceptDestination.isEnabled = false
+
+            startService(Intent(applicationContext, FloatingService::class.java))
             val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + destination.lat +"," + destination.lng + "&travelmode=driving")
-            val mapIntent: Intent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
+            val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
             mapIntent.setPackage("com.google.android.apps.maps")
             startActivity(mapIntent)
         }
