@@ -9,6 +9,7 @@ import pl.jarosyjarosy.yougetin.fcm.model.UserRegistrationToken;
 import pl.jarosyjarosy.yougetin.fcm.repository.UserRegistrationTokenRepository;
 import pl.jarosyjarosy.yougetin.notification.model.Notification;
 import pl.jarosyjarosy.yougetin.notification.model.NotificationType;
+import pl.jarosyjarosy.yougetin.trip.model.Trip;
 import pl.jarosyjarosy.yougetin.trip.service.TripService;
 
 import javax.transaction.Transactional;
@@ -84,5 +85,57 @@ public class FCMService {
     }
     public void sendDriverAtMeetingPointNotification(Notification notification, String driverName) throws FirebaseMessagingException {
         sendPushNotification(notification, notification.getPassengerId(), driverName, NotificationType.MEETING, "Kierowca jest już na miejscu.", " czeka na Ciebie.");
+    }
+
+    public void sendRateTripPushNotificationToDriver(Trip trip) throws FirebaseMessagingException {
+        List<String> registrationTokens = userRegistrationTokenRepository.findTokensByUserId(trip.getDriverId());
+
+        if (registrationTokens.size() > 0) {
+            Message message = Message.builder()
+                    .setAndroidConfig(
+                            AndroidConfig.builder()
+                                    .setNotification(AndroidNotification.builder().setClickAction("SHOW_MESSAGE").build())
+                                    .setPriority(AndroidConfig.Priority.HIGH).build())
+                    .setNotification(new com.google.firebase.messaging.Notification(
+                            "Czy polecasz pasażera, którego ostatnio podwiozłeś?",
+                            "Oceń swóje ostatnie spotkanie!"))
+                    .putData("passengerId", trip.getPassengerId().toString())
+                    .putData("driverId", trip.getDriverId().toString())
+                    .putData("meetingLat", trip.getMeetingLat().toString())
+                    .putData("meetingLng", trip.getMeetingLng().toString())
+                    .putData("type", NotificationType.RATING.toString())
+                    .setToken(registrationTokens.get(0))
+                    .build();
+            String response = FirebaseMessaging.getInstance().send(message);
+            LOGGER.info("Successfully sent message:" + response);
+        } else {
+            LOGGER.info("No registration tokens for user {}", trip.getDriverId());
+        }
+    }
+
+    public void sendRateTripPushNotificationToPassenger(Trip trip) throws FirebaseMessagingException {
+        List<String> registrationTokens = userRegistrationTokenRepository.findTokensByUserId(trip.getPassengerId());
+
+        if (registrationTokens.size() > 0) {
+            Message message = Message.builder()
+                    .setAndroidConfig(
+                            AndroidConfig.builder()
+                                    .setNotification(AndroidNotification.builder().setClickAction("SHOW_MESSAGE").build())
+                                    .setPriority(AndroidConfig.Priority.HIGH).build())
+                    .setNotification(new com.google.firebase.messaging.Notification(
+                            "Czy polecasz kierowcę, z którym ostatnio jechałeś?",
+                            "Oceń swóje ostatnie spotkanie!"))
+                    .putData("passengerId", trip.getPassengerId().toString())
+                    .putData("driverId", trip.getDriverId().toString())
+                    .putData("meetingLat", trip.getMeetingLat().toString())
+                    .putData("meetingLng", trip.getMeetingLng().toString())
+                    .putData("type", NotificationType.RATING.toString())
+                    .setToken(registrationTokens.get(0))
+                    .build();
+            String response = FirebaseMessaging.getInstance().send(message);
+            LOGGER.info("Successfully sent message:" + response);
+        } else {
+            LOGGER.info("No registration tokens for user {}", trip.getDriverId());
+        }
     }
 }

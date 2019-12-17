@@ -4,5 +4,6 @@ public enum NotificationType {
     ASK,
     ACCEPT,
     DECLINE,
-    MEETING
+    MEETING,
+    RATING
 }

@@ -41,6 +41,7 @@ public class UserService {
     private UserValidationService userValidationService;
     private RoleRepository roleRepository;
     private StopRepository stopRepository;
+    private RoutePointService routePointService;
     private Clock clock;
 
     @Autowired
@@ -48,11 +49,13 @@ public class UserService {
                        UserValidationService userValidationService,
                        RoleRepository roleRepository,
                        StopRepository stopRepository,
+                       RoutePointService routePointService,
                        Clock clock) {
         this.userRepository = userRepository;
         this.userValidationService = userValidationService;
         this.roleRepository = roleRepository;
         this.stopRepository = stopRepository;
+        this.routePointService = routePointService;
         this.clock = clock;
     }
 
@@ -167,9 +170,20 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public List<User> getActiveDrivers() {
-        LOGGER.info("LOGGER: get active drivers");
-        return userRepository.findActiveDrivers();
+    public List<User> getSortedActiveDrivers(Destination destination, User passenger) throws TransformException, FactoryException {
+        LOGGER.info("LOGGER: get sorted active drivers for passenger {}", passenger.getId());
+
+        List<User> drivers = userRepository.findActiveDrivers();
+
+        Map<User, Double> driverDistanceMap = new HashMap<>();
+        for (User driver : drivers) {
+            List<RoutePoint> driversRoute = routePointService.getRoute(driver.getDestinationId());
+            Double distance = calculateMinimumDistanceToRoute(driversRoute, new Position(passenger.getLat(), passenger.getLng()));
+            distance += calculateMinimumDistanceToRoute(driversRoute, new Position(destination.getLat(), destination.getLng()));
+            driverDistanceMap.put(driver, distance);
+        }
+
+        return driverDistanceMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).map(Map.Entry::getKey).collect(Collectors.toList());
     }
 
     @Transactional
@@ -194,14 +208,6 @@ public class UserService {
         gc.setDestinationPosition(JTS.toDirectPosition(new Coordinate(pos2.getLng(), pos2.getLat()), crs));
 
         return gc.getOrthodromicDistance();
-    }
-
-    private Double getDistanceBetweenDestinationAndRoute(Destination destination, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
-        return calculateMinimumDistanceToRoute(driverRoute, new Position(destination.getLat(), destination.getLng()));
-    }
-
-    private Double getDistanceBetweenPassengerAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
-        return calculateMinimumDistanceToRoute(driverRoute, getUserPosition(passenger.getId()));
     }
 
     public Double calculateMinimumDistanceToRoute(List<RoutePoint> driverRoute, Position position) throws TransformException, FactoryException {

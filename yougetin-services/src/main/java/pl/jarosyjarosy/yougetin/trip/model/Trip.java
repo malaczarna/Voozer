@@ -18,6 +18,7 @@ public class Trip {
     private Double meetingLat;
     private Double meetingLng;
     private Long destinationId;
+    private Boolean rated;
 
     public Long getId() {
         return id;
@@ -75,6 +76,14 @@ public class Trip {
         this.destinationId = destinationId;
     }
 
+    public Boolean getRated() {
+        return rated;
+    }
+
+    public void setRated(Boolean rated) {
+        this.rated = rated;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -86,16 +95,18 @@ public class Trip {
                 Objects.equal(driverId, trip.driverId) &&
                 Objects.equal(meetingLat, trip.meetingLat) &&
                 Objects.equal(meetingLng, trip.meetingLng) &&
-                Objects.equal(destinationId, trip.destinationId);
+                Objects.equal(destinationId, trip.destinationId) &&
+                Objects.equal(rated, trip.rated);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, createDate, passengerId, driverId, meetingLat, meetingLng, destinationId);
+        return Objects.hashCode(id, createDate, passengerId, driverId, meetingLat, meetingLng, destinationId, rated);
     }
 
     @Override
-    public String toString() {
+    public String
+    toString() {
         return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("createDate", createDate)
@@ -104,6 +115,7 @@ public class Trip {
                 .add("meetingLat", meetingLat)
                 .add("meetingLng", meetingLng)
                 .add("destinationId", destinationId)
+                .add("rated", rated)
                 .toString();
     }
 }

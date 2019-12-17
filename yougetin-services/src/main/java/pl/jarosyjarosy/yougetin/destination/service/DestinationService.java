@@ -64,6 +64,6 @@ public class DestinationService {
 
     public List<Destination> getByUserId(Long id) {
         LOGGER.info("LOGGER: get destinations for user {}", id);
-        return destinationRepository.getAllByUserId(id);
+        return destinationRepository.getAllByUserIdOrderByCreateDateDesc(id);
     }
 }

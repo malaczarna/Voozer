@@ -5,6 +5,8 @@ import org.opengis.referencing.operation.TransformException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.jarosyjarosy.yougetin.auth.model.Identity;
+import pl.jarosyjarosy.yougetin.destination.model.Destination;
+import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.UserMessage;
 import pl.jarosyjarosy.yougetin.user.model.User;
@@ -21,12 +23,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/users")
 public class UserController {
     private UserService userService;
+    private DestinationService destinationService;
     private UserMapperService userMapperService;
 
     @Autowired
     public UserController(UserService userService,
+                          DestinationService destinationService,
                           UserMapperService userMapperService) {
         this.userService = userService;
+        this.destinationService = destinationService;
         this.userMapperService = userMapperService;
     }
 
@@ -114,9 +119,12 @@ public class UserController {
             method = RequestMethod.GET,
             produces = "application/json"
     )
-    public List<UserMessage> getActiveDrivers(HttpServletRequest request) {
+    public List<UserMessage> getActiveDrivers(HttpServletRequest request) throws TransformException, FactoryException {
 
-        return userService.getActiveDrivers().stream()
+        User user = userService.get(new Identity(request).getUserId());
+        Destination destination = destinationService.getByUserId(user.getId()).get(0);
+
+        return userService.getSortedActiveDrivers(destination, user).stream()
                 .map(userMapperService::mapUser)
                 .collect(Collectors.toList());
     }
