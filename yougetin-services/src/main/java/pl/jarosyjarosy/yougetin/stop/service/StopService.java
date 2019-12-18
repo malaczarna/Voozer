@@ -49,19 +49,21 @@ public class StopService {
     }
 
     private void saveAndMapStopsFromBusStopsFeatures(List<Feature> busStops) {
-        LOGGER.info("LOGGER: saving new bus stop from Poznań API");
+        LOGGER.info("LOGGER: saving new bus stop from Poznań API started");
         this.stopRepository.deleteAll();
         List<Stop> stops = new ArrayList<>();
         for (Feature busStop : busStops) {
             if (busStop.getProperties().getRouteType().equals("3")) {
                 Stop newStop = new Stop();
-                newStop.setLat(busStop.getGeometry().getCoordinates().get(0));
-                newStop.setLng(busStop.getGeometry().getCoordinates().get(1));
+                newStop.setLat(busStop.getGeometry().getCoordinates().get(1));
+                newStop.setLng(busStop.getGeometry().getCoordinates().get(0));
                 newStop.setName(busStop.getProperties().getStopName());
                 stops.add(newStop);
+                LOGGER.info("LOGGER: mapped bus stop {} ({}, {})", newStop.getName(), newStop.getLat(), newStop.getLng());
             }
         }
         stopRepository.saveAll(stops);
+        LOGGER.info("LOGGER: saving new bus stop from Poznań API ended");
     }
 
 

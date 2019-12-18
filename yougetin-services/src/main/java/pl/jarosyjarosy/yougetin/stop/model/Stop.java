@@ -3,7 +3,7 @@ package pl.jarosyjarosy.yougetin.stop.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "stop")
+@Table(name = "stops")
 public class Stop {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

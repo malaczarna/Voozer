@@ -45,7 +45,7 @@ public class DestinationService {
 
     @Transactional
     public Destination validateAndCreate(Destination destination, Long userId) {
-        LOGGER.info("LOGGER: validate and create destination");
+        LOGGER.info("LOGGER: validate and create destination for user {}", userId);
         destination.setUserId(userId);
         checkIfFieldsAreNotEmpty(destination);
         destination.setCreateDate(Date.from(clock.instant()));

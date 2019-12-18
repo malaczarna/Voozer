@@ -10,7 +10,7 @@ import pl.jarosyjarosy.yougetin.trip.model.Trip;
 import javax.transaction.Transactional;
 import java.util.List;
 
-@Qualifier("trip")
+@Qualifier("trips")
 @Repository
 @Transactional
 public interface TripRepository extends CrudRepository<Trip, Long>, QueryByExampleExecutor<Trip> {

@@ -47,6 +47,7 @@ public class JwtFilterService extends GenericFilterBean {
                 && !request.getRequestURI().startsWith("/webjars")
                 && !request.getRequestURI().startsWith("/v2/api-docs")
                 && !request.getRequestURI().startsWith("/csrf")
+                && !request.getRequestURI().startsWith("/bus-stops")
                 && !request.getRequestURI().equals("/")
                 && !request.getRequestURI().startsWith("/health")
                 && !request.getRequestURI().startsWith("/open")
