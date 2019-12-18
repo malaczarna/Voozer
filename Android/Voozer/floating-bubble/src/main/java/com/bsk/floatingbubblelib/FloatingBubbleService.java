@@ -81,14 +81,14 @@ public class FloatingBubbleService extends Service {
     setupWindowManager();
     setupViews();
     setTouchListener();
-    final Handler handler = new Handler();
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        //Change state on start
-        setState(true);
-      }
-    }, 1000);
+//    final Handler handler = new Handler();
+//    handler.postDelayed(new Runnable() {
+//      @Override
+//      public void run() {
+//        //Change state on start
+//        setState(true);
+//      }
+//    }, 1000);
     return super.onStartCommand(intent, flags, Service.START_STICKY);
 
   }

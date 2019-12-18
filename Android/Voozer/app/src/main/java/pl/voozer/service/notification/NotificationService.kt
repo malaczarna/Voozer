@@ -8,6 +8,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import pl.voozer.R
 import android.content.Intent
+import pl.voozer.service.bubble.FloatingService
 import pl.voozer.utils.NOTIFICATION_BROADCAST_RECEIVER_ACTION
 
 

@@ -40,9 +40,6 @@ interface Api {
     @GET("users/active/drivers")
     fun getDrivers(): Observable<List<User>>
 
-//    @POST("users/active/drivers/get-in-radius-command")
-//    fun getDrivers(@Body radius: Double): Observable<List<User>>
-
     @POST("fcm")
     fun setFirebaseToken(@Body token: String): Observable<Unit?>
 

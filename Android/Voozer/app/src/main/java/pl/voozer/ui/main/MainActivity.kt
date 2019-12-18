@@ -199,10 +199,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
             },300L
         )
-
-        startService(
-            Intent(applicationContext, FloatingService::class.java).putExtra("message", "Użytkownik ${specificUser.name} prosi o podwóżkę.")
-        )
        placePassengerMarkerOnMap(LatLng(meetingLat, meetingLng))
     }
 
@@ -241,6 +237,16 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             route = routePointsTime
         )
         user.destination = destination
+        controller.setDestination(destination = destination)
+        when (user.profile) {
+            Profile.PASSENGER -> {
+                showProgressDialog()
+                controller.loadDrivers()
+            }
+            Profile.DRIVER -> {
+                return
+            }
+        }
     }
 
     override fun getLayoutResId(): Int {
@@ -314,9 +320,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         }
                         when (user.profile) {
                             Profile.PASSENGER -> {
-                                //controller.loadDrivers(radius = RADIUS)
                                 showProgressDialog()
-                                controller.loadDrivers()
                                 splMain.anchorPoint = 0.7f
                                 splMain.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
                                 ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
@@ -585,6 +589,9 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             fabCancelRide.animate().alpha(1f).setDuration(1000).withStartAction {
                 fabCancelRide.show()
             }
+            startService(
+                Intent(applicationContext, FloatingService::class.java).putExtra("message", "Serwus, to ja Twoj bombel!")
+            )
             btnAcceptDestination.isEnabled = false
             val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + destination.lat +"," + destination.lng + "&travelmode=driving")
             val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
