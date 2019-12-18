@@ -38,7 +38,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.LocationBias
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.model.TypeFilter
@@ -199,6 +198,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             {
                 splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
             },300L
+        )
+
+        startService(
+            Intent(applicationContext, FloatingService::class.java).putExtra("message", "Użytkownik ${specificUser.name} prosi o podwóżkę.")
         )
        placePassengerMarkerOnMap(LatLng(meetingLat, meetingLng))
     }
@@ -583,8 +586,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 fabCancelRide.show()
             }
             btnAcceptDestination.isEnabled = false
-
-            startService(Intent(applicationContext, FloatingService::class.java))
             val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + destination.lat +"," + destination.lng + "&travelmode=driving")
             val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
             mapIntent.setPackage("com.google.android.apps.maps")
