@@ -82,8 +82,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private var lastRoute: Polyline? = null
     private var notificationReceiver: BroadcastReceiver? = null
     private var waitingDialog: MaterialDialog? = null
-    private var meetingLat: Double = 0.0
-    private var meetingLng: Double = 0.0
+    private var meetingLat: Double? = null
+    private var meetingLng: Double? = null
     private val AUTOCOMPLETE_REQUEST_CODE = 1
 
 
@@ -199,7 +199,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
             },300L
         )
-       placePassengerMarkerOnMap(LatLng(meetingLat, meetingLng))
+        placePassengerMarkerOnMap(LatLng(meetingLat!!, meetingLng!!))
+
     }
 
     override fun setRoute(direction: Direction) {
@@ -373,8 +374,11 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                             controller.loadSpecificUser(passengerId)
                         }
                         NotificationType.ACCEPT.name -> {
+                            SharedPreferencesHelper.setTripActive(context = applicationContext, value = true)
+                            requestingLocationUpdates = true
+                            startLocationUpdates()
                             waitingDialog?.let { it.dismiss() }
-                            Toast.makeText(this, "Kierwca zaakceptował przjażdżkę!", Toast.LENGTH_LONG).show()
+                            Toast.makeText(this, "Kierowca zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
                             val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$meetingLat,$meetingLng&travelmode=walking")
                             val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
                             mapIntent.setPackage("com.google.android.apps.maps")
@@ -440,6 +444,14 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         getLocationPermission()
         initLocationCallback()
         initOnClickListeners()
+        when (SharedPreferencesHelper.isTripActive(applicationContext)) {
+            true -> {
+                //TODO
+            }
+            false -> {
+                //TODO
+            }
+        }
     }
 
     private fun initNotificationReceiver() {
@@ -456,7 +468,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     }
                     NotificationType.ACCEPT.name -> {
                         waitingDialog?.dismiss()
-                        Toast.makeText(applicationContext, "Kierwca zaakceptował przjażdżkę!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(applicationContext, "Kierowca zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
                         val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$meetingLat,$meetingLng&travelmode=walking")
                         val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
                         mapIntent.setPackage("com.google.android.apps.maps")
@@ -470,8 +482,18 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                             }
                             Profile.PASSENGER -> {
                                 waitingDialog?.dismiss()
-                                Toast.makeText(applicationContext, "Kierwca anulował przjazd!", Toast.LENGTH_LONG).show()
+                                Toast.makeText(applicationContext, "Kierowca anulował przjazd!", Toast.LENGTH_LONG).show()
                                 splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+                            }
+                        }
+                    }
+                    NotificationType.MEETING.name -> {
+                        when (user.profile) {
+                            Profile.DRIVER -> {
+                                Toast.makeText(applicationContext, "Pasażer dotarł na miejsce spotkania!", Toast.LENGTH_LONG).show()
+                            }
+                            Profile.PASSENGER -> {
+                                Toast.makeText(applicationContext, "Kierowca dojechał do punktu spotkania!", Toast.LENGTH_LONG).show()
                             }
                         }
                     }
@@ -628,6 +650,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             }
         }
         btnAcceptPassenger.setOnClickListener {
+            SharedPreferencesHelper.setTripActive(context = applicationContext, value = true)
             controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.ACCEPT))
             val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + user.destination.lat +"," + user.destination.lng + "&waypoints=" +  meetingLat +"," + meetingLng + "&travelmode=driving")
             val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
@@ -658,6 +681,22 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         )
                     } else {
                         controller.sendPosition(Position(location.latitude, location.longitude))
+                    }
+                    if (meetingLat != null && meetingLng != null) {
+                        val distance = FloatArray(2)
+                        Location.distanceBetween(location.latitude, location.longitude, meetingLat!!, meetingLng!!, distance)
+                        if (distance[0] <= RADIUS) {
+                            requestingLocationUpdates = false
+                            stopLocationUpdates()
+                            when (user.profile) {
+                                Profile.DRIVER -> {
+                                    controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.MEETING))
+                                }
+                                Profile.PASSENGER -> {
+                                    controller.sendNotification(NotificationMessage(passengerId = user.id, driverId = specificUser.id, notificationType = NotificationType.MEETING))
+                                }
+                            }
+                        }
                     }
                 }
             }

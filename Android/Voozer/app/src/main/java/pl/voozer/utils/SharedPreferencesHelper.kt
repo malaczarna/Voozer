@@ -46,6 +46,16 @@ class SharedPreferencesHelper {
         fun isFirebaseInit(context: Context): Boolean? {
             return context.getSharedPreferences("123", Context.MODE_PRIVATE).getBoolean("firebase-first-init", false)
         }
+
+        fun setTripActive(context: Context, value: Boolean) {
+            val editor: SharedPreferences.Editor = context.getSharedPreferences("123", Context.MODE_PRIVATE).edit()
+            editor.putBoolean("trip-active", value)
+            editor.apply()
+        }
+
+        fun isTripActive(context: Context): Boolean? {
+            return context.getSharedPreferences("123", Context.MODE_PRIVATE).getBoolean("trip-active", false)
+        }
     }
 
 }
