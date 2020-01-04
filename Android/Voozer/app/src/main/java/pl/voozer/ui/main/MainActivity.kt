@@ -14,7 +14,9 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.location.Location
 import android.net.Uri
+import android.os.Build
 import android.os.Handler
+import android.provider.Settings
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -187,7 +189,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     Profile.DRIVER -> {
                         llDrivers.visibility = View.GONE
                         llPassengers.visibility = View.VISIBLE
-                        splMain.anchorPoint = 0.6f
+                        splMain.anchorPoint = 0.5f
                         ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
                             duration = 300
                             start()
@@ -201,7 +203,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     Profile.PASSENGER -> {
                         llDrivers.visibility = View.GONE
                         llInformation.visibility = View.VISIBLE
-                        splMain.anchorPoint = 0.6f
+                        splMain.anchorPoint = 0.5f
                         ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
                             duration = 300
                             start()
@@ -413,6 +415,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                             requestingLocationUpdates = true
                             startLocationUpdates()
                             llDrivers.visibility = View.GONE
+                            tvSplTitle.text = "Informacje"
+                            btnCancelRide.text = "Kierowca nie przyjechał na miejsce spotkania!"
                             llInformation.visibility = View.VISIBLE
                             splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
                         }
@@ -479,8 +483,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         initFirebase()
         initNotificationReceiver()
         getLocationPermission()
+        getDrawOverAppPermission()
         initLocationCallback()
         initOnClickListeners()
+        //SharedPreferencesHelper.setTripActive(applicationContext, value = false) //TODO: For testing
     }
 
     private fun initNotificationReceiver() {
@@ -502,6 +508,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         requestingLocationUpdates = true
                         startLocationUpdates()
                         llDrivers.visibility = View.GONE
+                        tvSplTitle.text = "Informacje"
+                        btnCancelRide.text = "Kierowca nie przyjechał na miejsce spotkania!"
                         llInformation.visibility = View.VISIBLE
                         splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
 
@@ -684,6 +692,17 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         btnAcceptPassenger.setOnClickListener {
             SharedPreferencesHelper.setTripActive(context = applicationContext, value = true)
             controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.ACCEPT))
+            splMain.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+            llPassengers.visibility = View.GONE
+            llInformation.visibility = View.VISIBLE
+            tvSplTitle.text = "Informacje"
+            btnCancelRide.text = "Pasażer nie przyjechał na miejsce spotkania!"
+            splMain.anchorPoint = 0.5f
+            Handler().postDelayed(
+                {
+                    splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+                },300L
+            )
             val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + user.destination.lat +"," + user.destination.lng + "&waypoints=" +  meetingLat +"," + meetingLng + "&travelmode=driving")
             val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
             mapIntent.setPackage("com.google.android.apps.maps")
@@ -697,6 +716,17 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
             mapIntent.setPackage("com.google.android.apps.maps")
             startActivity(mapIntent)
+        }
+        btnCancelRide.setOnClickListener {
+            removeMarkers()
+            SharedPreferencesHelper.setTripActive(context = applicationContext, value = false)
+            tvSearch.text = getString(R.string.search_bar_title)
+            splMain.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
+            ObjectAnimator.ofFloat(llFabButtons, "translationY", 0f).apply {
+                duration = 1000
+                start()
+            }
+            llSearchBar.isEnabled = true
         }
     }
 
@@ -810,5 +840,13 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     initLocation()
                 }
             }
+    }
+
+    private fun getDrawOverAppPermission() {
+        if (!Settings.canDrawOverlays(this)) {
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName"))
+            startActivity(intent)
+        }
     }
 }
