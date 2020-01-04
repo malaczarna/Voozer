@@ -181,6 +181,40 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 btnAcceptDestination.setBackgroundColor(ContextCompat.getColor(applicationContext, R.color.colorPrimaryDriver))
             }
         }
+        when (SharedPreferencesHelper.isTripActive(applicationContext)) {
+            true -> {
+                when (user.profile) {
+                    Profile.DRIVER -> {
+                        llDrivers.visibility = View.GONE
+                        llPassengers.visibility = View.VISIBLE
+                        splMain.anchorPoint = 0.6f
+                        ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
+                            duration = 300
+                            start()
+                        }
+                        Handler().postDelayed(
+                            {
+                                splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+                            },300L
+                        )
+                    }
+                    Profile.PASSENGER -> {
+                        llDrivers.visibility = View.GONE
+                        llInformation.visibility = View.VISIBLE
+                        splMain.anchorPoint = 0.6f
+                        ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
+                            duration = 300
+                            start()
+                        }
+                        Handler().postDelayed(
+                            {
+                                splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+                            },300L
+                        )
+                    }
+                }
+            }
+        }
     }
 
     override fun updateSpecificUser(user: User) {
@@ -188,8 +222,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         tvSplTitle.text = "Użytkownik ${specificUser.name} prosi o podwóżkę."
         llDrivers.visibility = View.GONE
         llPassengers.visibility = View.VISIBLE
-        splMain.anchorPoint = 0.5f
-        splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+        splMain.anchorPoint = 0.6f
         ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
             duration = 300
             start()
@@ -374,15 +407,14 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                             controller.loadSpecificUser(passengerId)
                         }
                         NotificationType.ACCEPT.name -> {
+                            waitingDialog?.dismiss()
+                            Toast.makeText(applicationContext, "Kierowca zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
                             SharedPreferencesHelper.setTripActive(context = applicationContext, value = true)
                             requestingLocationUpdates = true
                             startLocationUpdates()
-                            waitingDialog?.let { it.dismiss() }
-                            Toast.makeText(this, "Kierowca zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
-                            val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$meetingLat,$meetingLng&travelmode=walking")
-                            val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
-                            mapIntent.setPackage("com.google.android.apps.maps")
-                            startActivity(mapIntent)
+                            llDrivers.visibility = View.GONE
+                            llInformation.visibility = View.VISIBLE
+                            splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
                         }
                         NotificationType.DECLINE.name -> {
                             when (user.profile) {
@@ -415,14 +447,19 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 splMain.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
             }
             splMain.panelState == SlidingUpPanelLayout.PanelState.COLLAPSED -> {
-                removeMarkers()
-                tvSearch.text = getString(R.string.search_bar_title)
-                splMain.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
-                ObjectAnimator.ofFloat(llFabButtons, "translationY", 0f).apply {
-                    duration = 1000
-                    start()
+                when (SharedPreferencesHelper.isTripActive(applicationContext)) {
+                    false -> {
+                        removeMarkers()
+                        tvSearch.text = getString(R.string.search_bar_title)
+                        splMain.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
+                        ObjectAnimator.ofFloat(llFabButtons, "translationY", 0f).apply {
+                            duration = 1000
+                            start()
+                        }
+                        llSearchBar.isEnabled = true
+                    }
                 }
-                llSearchBar.isEnabled = true
+
             }
             else -> super.onBackPressed()
         }
@@ -444,14 +481,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         getLocationPermission()
         initLocationCallback()
         initOnClickListeners()
-        when (SharedPreferencesHelper.isTripActive(applicationContext)) {
-            true -> {
-                //TODO
-            }
-            false -> {
-                //TODO
-            }
-        }
     }
 
     private fun initNotificationReceiver() {
@@ -469,10 +498,13 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     NotificationType.ACCEPT.name -> {
                         waitingDialog?.dismiss()
                         Toast.makeText(applicationContext, "Kierowca zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
-                        val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$meetingLat,$meetingLng&travelmode=walking")
-                        val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
-                        mapIntent.setPackage("com.google.android.apps.maps")
-                        startActivity(mapIntent)
+                        SharedPreferencesHelper.setTripActive(context = applicationContext, value = true)
+                        requestingLocationUpdates = true
+                        startLocationUpdates()
+                        llDrivers.visibility = View.GONE
+                        llInformation.visibility = View.VISIBLE
+                        splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+
                     }
                     NotificationType.DECLINE.name -> {
                         when (user.profile) {
@@ -659,6 +691,12 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
         btnCancelPassenger.setOnClickListener {
             controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.DECLINE))
+        }
+        btnStartNavigation.setOnClickListener {
+            val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$meetingLat,$meetingLng&travelmode=walking")
+            val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
+            mapIntent.setPackage("com.google.android.apps.maps")
+            startActivity(mapIntent)
         }
     }
 
