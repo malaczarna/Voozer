@@ -22,6 +22,12 @@ public class User {
     private String email;
     private String password;
 
+    private String phoneNumber;
+
+    private String carBrand;
+    private String carModel;
+    private String carColor;
+
     private Date createDate;
 
     private Date lastActivity;
@@ -64,6 +70,38 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getCarBrand() {
+        return carBrand;
+    }
+
+    public void setCarBrand(String carBrand) {
+        this.carBrand = carBrand;
+    }
+
+    public String getCarModel() {
+        return carModel;
+    }
+
+    public void setCarModel(String carModel) {
+        this.carModel = carModel;
+    }
+
+    public String getCarColor() {
+        return carColor;
+    }
+
+    public void setCarColor(String carColor) {
+        this.carColor = carColor;
     }
 
     public Date getCreateDate() {
@@ -139,6 +177,10 @@ public class User {
                 Objects.equal(name, user.name) &&
                 Objects.equal(email, user.email) &&
                 Objects.equal(password, user.password) &&
+                Objects.equal(phoneNumber, user.phoneNumber) &&
+                Objects.equal(carBrand, user.carBrand) &&
+                Objects.equal(carModel, user.carModel) &&
+                Objects.equal(carColor, user.carColor) &&
                 Objects.equal(createDate, user.createDate) &&
                 Objects.equal(lastActivity, user.lastActivity) &&
                 Objects.equal(active, user.active) &&
@@ -151,7 +193,7 @@ public class User {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, name, email, password, createDate, lastActivity, active, destinationId, blocked, lat, lng, currentProfile);
+        return Objects.hashCode(id, name, email, password, phoneNumber, carBrand, carModel, carColor, createDate, lastActivity, active, destinationId, blocked, lat, lng, currentProfile);
     }
 
     @Override
@@ -161,6 +203,10 @@ public class User {
                 .add("name", name)
                 .add("email", email)
                 .add("password", password)
+                .add("phoneNumber", phoneNumber)
+                .add("carBrand", carBrand)
+                .add("carModel", carModel)
+                .add("carColor", carColor)
                 .add("createDate", createDate)
                 .add("lastActivity", lastActivity)
                 .add("active", active)

@@ -230,7 +230,7 @@ public class UserService {
 
         Date driverToBeOnPoint = Date.from(point.getCreateDate().toInstant().plusSeconds(point.getSeconds()));
 
-        return passengerToBeOnPoint.getTime() <= driverToBeOnPoint.getTime();
+        return passengerToBeOnPoint.getTime() < driverToBeOnPoint.getTime();
 
     }
 
@@ -248,6 +248,10 @@ public class UserService {
                         closestDriverPoint = new Position(point.getLat(), point.getLng());
                     }
                 }
+            }
+
+            if (closestDriverPoint.equals(new Position(0D, 0D))) {
+               throw new MeetingPointNotFoundException("Users cannot meet");
             }
 
             Stop closestStop = new Stop();
