@@ -78,6 +78,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private lateinit var toolbar: Toolbar
     private lateinit var navView: NavigationView
     private lateinit var specificUser: User
+    private lateinit var driverId: String
+    private lateinit var passengerId: String
     private var requestingLocationUpdates: Boolean = false
     private var isDestinationReloadNeeded = false
     private var fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
@@ -402,8 +404,14 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     val driverId = bundle.getString("driverId", "0")
                     val passengerId = bundle.getString("passengerId", "0")
                     val notificationType = bundle.getString("type", "0")
-                    meetingLat = bundle.getString("meetingLat", "0.0").toDouble()
-                    meetingLng = bundle.getString("meetingLng", "0.0").toDouble()
+                    this@MainActivity.passengerId = passengerId
+                    this@MainActivity.driverId = driverId
+                    this@MainActivity.meetingLat = bundle.getString("meetingLat", "0.0").toDouble()
+                    this@MainActivity.meetingLng = bundle.getString("meetingLng", "0.0").toDouble()
+                    SharedPreferencesHelper.setMeetingLat(applicationContext, bundle.getString("meetingLat", "0.0"))
+                    SharedPreferencesHelper.setMeetingLng(applicationContext, bundle.getString("meetingLng", "0.0"))
+                    SharedPreferencesHelper.setDriverId(applicationContext, bundle.getString("driverId", "0"))
+                    SharedPreferencesHelper.setPassengerId(applicationContext, bundle.getString("passengerId", "0"))
                     when (notificationType) {
                         NotificationType.ASK.name -> {
                             controller.loadSpecificUser(passengerId)
@@ -463,7 +471,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                         llSearchBar.isEnabled = true
                     }
                 }
-
             }
             else -> super.onBackPressed()
         }
@@ -487,6 +494,10 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         initLocationCallback()
         initOnClickListeners()
         //SharedPreferencesHelper.setTripActive(applicationContext, value = false) //TODO: For testing
+        SharedPreferencesHelper.setMeetingLat(applicationContext, value = null)
+        SharedPreferencesHelper.setMeetingLng(applicationContext, value = null)
+        SharedPreferencesHelper.setDriverId(applicationContext, value = null)
+        SharedPreferencesHelper.setPassengerId(applicationContext, value = null)
     }
 
     private fun initNotificationReceiver() {
@@ -495,8 +506,14 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 val driverId = intent.getStringExtra("driverId")
                 val passengerId = intent.getStringExtra("passengerId")
                 val notificationType = intent.getStringExtra("type")
-                meetingLat = intent.getStringExtra("meetingLat").toDouble()
-                meetingLng = intent.getStringExtra("meetingLng").toDouble()
+                this@MainActivity.passengerId = passengerId
+                this@MainActivity.driverId = driverId
+                this@MainActivity.meetingLat = intent.getStringExtra("meetingLat").toDouble()
+                this@MainActivity.meetingLng = intent.getStringExtra("meetingLng").toDouble()
+                SharedPreferencesHelper.setMeetingLat(applicationContext, intent.getStringExtra("meetingLat"))
+                SharedPreferencesHelper.setMeetingLng(applicationContext, intent.getStringExtra("meetingLng"))
+                SharedPreferencesHelper.setDriverId(applicationContext, intent.getStringExtra("driverId"))
+                SharedPreferencesHelper.setPassengerId(applicationContext, intent.getStringExtra("passengerId"))
                 when (notificationType) {
                     NotificationType.ASK.name -> {
                         controller.loadSpecificUser(passengerId)
@@ -750,20 +767,13 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     } else {
                         controller.sendPosition(Position(location.latitude, location.longitude))
                     }
-                    if (meetingLat != null && meetingLng != null) {
+                    if (SharedPreferencesHelper.getMeetingLat(applicationContext) != null && SharedPreferencesHelper.getMeetingLng(applicationContext) != null) {
                         val distance = FloatArray(2)
-                        Location.distanceBetween(location.latitude, location.longitude, meetingLat!!, meetingLng!!, distance)
+                        Location.distanceBetween(location.latitude, location.longitude, SharedPreferencesHelper.getMeetingLat(applicationContext)!!.toDouble(), SharedPreferencesHelper.getMeetingLng(applicationContext)!!.toDouble(), distance)
                         if (distance[0] <= RADIUS) {
                             requestingLocationUpdates = false
                             stopLocationUpdates()
-                            when (user.profile) {
-                                Profile.DRIVER -> {
-                                    controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.MEETING))
-                                }
-                                Profile.PASSENGER -> {
-                                    controller.sendNotification(NotificationMessage(passengerId = user.id, driverId = specificUser.id, notificationType = NotificationType.MEETING))
-                                }
-                            }
+                            controller.sendNotification(NotificationMessage(passengerId = SharedPreferencesHelper.getPassengerId(applicationContext)!!.toLong(), driverId = SharedPreferencesHelper.getDriverId(applicationContext)!!.toLong(), notificationType = NotificationType.MEETING))
                         }
                     }
                 }

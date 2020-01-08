@@ -56,6 +56,46 @@ class SharedPreferencesHelper {
         fun isTripActive(context: Context): Boolean? {
             return context.getSharedPreferences("123", Context.MODE_PRIVATE).getBoolean("trip-active", false)
         }
+
+        fun setMeetingLat(context: Context, value: String?) {
+            val editor: SharedPreferences.Editor = context.getSharedPreferences("123", Context.MODE_PRIVATE).edit()
+            editor.putString("meeting-lat", value)
+            editor.apply()
+        }
+
+        fun getMeetingLat(context: Context): String? {
+            return context.getSharedPreferences("123", Context.MODE_PRIVATE).getString("meeting-lat", null)
+        }
+
+        fun setMeetingLng(context: Context, value: String?) {
+            val editor: SharedPreferences.Editor = context.getSharedPreferences("123", Context.MODE_PRIVATE).edit()
+            editor.putString("meeting-lng", value)
+            editor.apply()
+        }
+
+        fun getMeetingLng(context: Context): String? {
+            return context.getSharedPreferences("123", Context.MODE_PRIVATE).getString("meeting-lng", null)
+        }
+
+        fun setPassengerId(context: Context, value: String?) {
+            val editor: SharedPreferences.Editor = context.getSharedPreferences("123", Context.MODE_PRIVATE).edit()
+            editor.putString("passenger-id", value)
+            editor.apply()
+        }
+
+        fun getPassengerId(context: Context): String? {
+            return context.getSharedPreferences("123", Context.MODE_PRIVATE).getString("passenger-id", null)
+        }
+
+        fun setDriverId(context: Context, value: String?) {
+            val editor: SharedPreferences.Editor = context.getSharedPreferences("123", Context.MODE_PRIVATE).edit()
+            editor.putString("driver-id", value)
+            editor.apply()
+        }
+
+        fun getDriverId(context: Context): String? {
+            return context.getSharedPreferences("123", Context.MODE_PRIVATE).getString("driver-id", null)
+        }
     }
 
 }
