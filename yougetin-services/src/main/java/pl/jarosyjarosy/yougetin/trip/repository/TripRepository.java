@@ -17,6 +17,6 @@ public interface TripRepository extends CrudRepository<Trip, Long>, QueryByExamp
     List<Trip> findAllByDriverId(Long id);
     List<Trip> findAllByPassengerId(Long id);
 
-    @Query(value = "select * from trips where rated = false and create_date < now() - interval 60 minute", nativeQuery = true)
+    @Query(value = "select * from trips where rated = false and create_date < now() - interval 5 minute", nativeQuery = true)
     List<Trip> findUnratedTripsHourAfterMeeting();
 }

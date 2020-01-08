@@ -243,10 +243,10 @@ public class UserService {
             for (RoutePoint point : driverRoute) {
                 distanceToCheck = calculateDistanceBetweenTwoPositions(new Position(point.getLat(), point.getLng()), passengerPosition);
                 if (distance > distanceToCheck || distance == -1) {
-                    if (checkIfPassengerWontBeLate(distanceToCheck, point)) {
+//                    if (checkIfPassengerWontBeLate(distanceToCheck, point)) {
                         distance = distanceToCheck;
                         closestDriverPoint = new Position(point.getLat(), point.getLng());
-                    }
+//                    }
                 }
             }
 

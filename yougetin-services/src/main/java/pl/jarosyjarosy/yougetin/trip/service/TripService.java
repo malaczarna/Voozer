@@ -72,6 +72,7 @@ public class TripService {
         newTrip.setDriverId(notification.getDriverId());
         newTrip.setPassengerId(notification.getPassengerId());
         newTrip.setDestinationId(userService.get(notification.getPassengerId()).getDestinationId());
+        newTrip.setRated(false);
 
         validateAndCreate(newTrip);
     }
@@ -84,7 +85,9 @@ public class TripService {
     }
 
     public List<Trip> getUnratedTripsHourAfterMeeting() {
-        return tripRepository.findUnratedTripsHourAfterMeeting();
+        List<Trip> trips = tripRepository.findUnratedTripsHourAfterMeeting();
+        LOGGER.info("LOGGER: found {} unrated trips hour after meeting", trips.size());
+        return trips;
     }
 
     public void sendRatingsNotifications(Trip trip) {

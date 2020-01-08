@@ -7,7 +7,7 @@ public class TripsRatingRunner implements Runnable{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TripsRatingRunner.class);
 
-    private static final Long SLEEP_TIME_AFTER_USER_CHECKING = 2000L;
+    private static final Long SLEEP_TIME_AFTER_USER_CHECKING = 60000L;
 
     private TripService tripService;
 
