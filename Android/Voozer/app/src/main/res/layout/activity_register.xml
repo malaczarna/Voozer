@@ -1,104 +1,195 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:background="@color/colorPrimary"
-              android:gravity="center">
 
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textColor="@android:color/white"
-            android:layout_marginBottom="20dp"
-            android:textSize="50sp"
-            android:textStyle="bold" />
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+                                       xmlns:app="http://schemas.android.com/apk/res-auto"
+                                       android:orientation="vertical"
+                                       android:layout_width="match_parent"
+                                       android:layout_height="match_parent"
+                                       android:background="@color/colorPrimary">
 
-    <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilName"
+    <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            app:hintEnabled="true">
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary"
+            android:layout_gravity="center"
+            android:gravity="center">
 
-        <EditText
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rejestracja"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="20dp"
+                android:textSize="50sp"
+                android:textStyle="bold"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Name"
-                android:inputType="textEmailAddress"
-                android:textColor="@android:color/white"
-                android:text="Kasper"/>
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                app:hintEnabled="true">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Imię"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@android:color/white"
+                    android:text="Kasper"/>
 
-    <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            app:hintEnabled="true">
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="E-mail"
-                android:inputType="textEmailAddress"
-                android:textColor="@android:color/white"
-                android:text="k.spychala95@gmail.com"/>
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                app:hintEnabled="true">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="E-mail"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@android:color/white"
+                    android:text="k.spychala95@gmail.com"/>
 
-    <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            app:hintEnabled="true">
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPhone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Password"
-                android:inputType="textPassword"
-                android:textColor="@android:color/white"
-                android:text="test12"/>
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                app:hintEnabled="true">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Numer telefonu"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@android:color/white"
+                    android:text="987654321"/>
 
-    <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPasswordConfirm"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            app:hintEnabled="true">
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Confirm password"
-                android:inputType="textPassword"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                app:hintEnabled="true">
+
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Hasło"
+                    android:inputType="textPassword"
+                    android:textColor="@android:color/white"
+                    android:text="test12"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPasswordConfirm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                app:hintEnabled="true">
+
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Potwierdź hasło"
+                    android:inputType="textPassword"
+                    android:textColor="@android:color/white"
+                    android:text="test12"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+                android:id="@+id/tvAdditionalCarInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:text="test12"/>
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone"
+                android:text="Dodatkowe informacje samochodu"/>
 
-    </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCarBrand"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:visibility="gone"
+                app:hintEnabled="true">
 
-    <Button
-            android:id="@+id/btnRegister"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginTop="10dp"
-            android:backgroundTint="@color/colorPrimaryDark"
-            android:clickable="true"
-            android:focusable="true"
-            android:text="REGISTER"
-            android:textColor="@android:color/white"/>
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Marka"
+                    android:textColor="@android:color/white"
+                    android:text="Volkswagen"/>
 
-</LinearLayout>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCarModel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:visibility="gone"
+                app:hintEnabled="true">
+
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Model"
+                    android:textColor="@android:color/white"
+                    android:text="Golf V"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCarColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:visibility="gone"
+                app:hintEnabled="true">
+
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Kolor"
+                    android:textColor="@android:color/white"
+                    android:text="Czarny"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+                android:id="@+id/btnRegister"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="ZAREJESTRUJ"
+                android:textColor="@android:color/white"/>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

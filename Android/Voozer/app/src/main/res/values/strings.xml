@@ -28,4 +28,7 @@
     <string name="default_notification_channel_id">default</string>
     <string name="default_notification_channel_name">default</string>
     <string name="default_notification_channel_description">default</string>
+
+    <string name="register_account_type_title">Wybierz typ użytkownika</string>
+    <string name="register_account_type_message">Możesz zarejestrować się jako pasażer lub kierowca.</string>
 </resources>

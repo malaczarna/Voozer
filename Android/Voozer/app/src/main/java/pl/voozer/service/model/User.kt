@@ -12,6 +12,8 @@ data class User(
     val email: String,
     @SerializedName("password")
     val password: String,
+    @SerializedName("phoneNumber")
+    val phoneNumber: String,
     @SerializedName("createDate")
     val createDate: Date,
     @SerializedName("destination")
@@ -21,5 +23,11 @@ data class User(
     @SerializedName("lng")
     val lng: Double,
     @SerializedName("currentProfile")
-    val profile: Profile
+    val profile: Profile,
+    @SerializedName("carBrand")
+    val carBrand: String,
+    @SerializedName("carModel")
+    val carModel: String,
+    @SerializedName("carColor")
+    val carColor: String
 )

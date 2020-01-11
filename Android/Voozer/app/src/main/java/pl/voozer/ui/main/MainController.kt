@@ -130,8 +130,8 @@ class MainController : BaseController<MainView>() {
     }
 
     @SuppressLint("CheckResult")
-    fun loadDirection(api: Api, origin: String, destination: String, key: String) {
-        api.getDirections(origin = origin, destination = destination, key = key)
+    fun loadDirection(api: Api, origin: String, destination: String, travelMode: String, key: String) {
+        api.getDirections(origin = origin, destination = destination, travelMode = travelMode, key = key)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(

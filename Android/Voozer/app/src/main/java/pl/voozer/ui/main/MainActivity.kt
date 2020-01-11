@@ -190,7 +190,9 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 when (user.profile) {
                     Profile.DRIVER -> {
                         llDrivers.visibility = View.GONE
-                        llPassengers.visibility = View.VISIBLE
+                        llInformation.visibility = View.VISIBLE
+                        tvSplTitle.text = "Informacje"
+                        btnCancelRide.text = "Pasażer nie przyjechał na miejsce spotkania!"
                         splMain.anchorPoint = 0.5f
                         ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
                             duration = 300
@@ -205,6 +207,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     Profile.PASSENGER -> {
                         llDrivers.visibility = View.GONE
                         llInformation.visibility = View.VISIBLE
+                        tvSplTitle.text = "Informacje"
+                        btnCancelRide.text = "Kierowca nie przyjechał na miejsce spotkania!"
                         splMain.anchorPoint = 0.5f
                         ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
                             duration = 300
@@ -265,8 +269,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 )
             )
         }
-        //Calculating route with time for each point
-        //TODO: Travel mode for passenger and driver in the url query (Time differs)
         lastRoute = googleMap.addPolyline(options)
         destination = Destination(
             name = place.name!!,
@@ -347,12 +349,26 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                                 if (location != null) {
                                     lastLocation = location
                                     showProgressDialog()
-                                    controller.loadDirection(
-                                        api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
-                                        origin = "${lastLocation.latitude},${lastLocation.longitude}",
-                                        destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
-                                        key = BuildConfig.GOOGLE_API_KEY
-                                    )
+                                    when(user.profile) {
+                                        Profile.DRIVER -> {
+                                            controller.loadDirection(
+                                                api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
+                                                origin = "${lastLocation.latitude},${lastLocation.longitude}",
+                                                destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                                                travelMode = TRAVEL_MODE_DRIVING,
+                                                key = BuildConfig.GOOGLE_API_KEY
+                                            )
+                                        }
+                                        Profile.PASSENGER -> {
+                                            controller.loadDirection(
+                                                api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
+                                                origin = "${lastLocation.latitude},${lastLocation.longitude}",
+                                                destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                                                travelMode = TRAVEL_MODE_WALKING,
+                                                key = BuildConfig.GOOGLE_API_KEY
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -737,6 +753,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         btnCancelRide.setOnClickListener {
             removeMarkers()
             SharedPreferencesHelper.setTripActive(context = applicationContext, value = false)
+            llInformation.visibility = View.GONE
+            llDrivers.visibility = View.VISIBLE
             tvSearch.text = getString(R.string.search_bar_title)
             splMain.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
             ObjectAnimator.ofFloat(llFabButtons, "translationY", 0f).apply {
@@ -758,12 +776,26 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     }
                     if (!PolyUtil.isLocationOnPath(LatLng(location.latitude, location.longitude), routePoints, false, TOLERANCE)) {
                         isDestinationReloadNeeded = true
-                        controller.loadDirection(
-                            api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
-                            origin = "${location.latitude},${location.longitude}",
-                            destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
-                            key = BuildConfig.GOOGLE_API_KEY
-                        )
+                        when(user.profile){
+                            Profile.DRIVER -> {
+                                controller.loadDirection(
+                                    api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
+                                    origin = "${lastLocation.latitude},${lastLocation.longitude}",
+                                    destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                                    travelMode = TRAVEL_MODE_DRIVING,
+                                    key = BuildConfig.GOOGLE_API_KEY
+                                )
+                            }
+                            Profile.PASSENGER -> {
+                                controller.loadDirection(
+                                    api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
+                                    origin = "${lastLocation.latitude},${lastLocation.longitude}",
+                                    destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                                    travelMode = TRAVEL_MODE_WALKING,
+                                    key = BuildConfig.GOOGLE_API_KEY
+                                )
+                            }
+                        }
                     } else {
                         controller.sendPosition(Position(location.latitude, location.longitude))
                     }

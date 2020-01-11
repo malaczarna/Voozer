@@ -49,5 +49,6 @@ interface Api {
     @GET("maps/api/directions/json")
     fun getDirections(@Query("origin") origin: String,
                       @Query("destination") destination: String,
+                      @Query("mode") travelMode: String,
                       @Query("key") key: String): Observable<Direction>
 }
