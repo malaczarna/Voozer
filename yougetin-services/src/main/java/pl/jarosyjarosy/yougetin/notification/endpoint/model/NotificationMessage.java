@@ -12,6 +12,7 @@ public class NotificationMessage {
 
     private Double meetingLat;
     private Double meetingLng;
+    private String meetingName;
 
     private NotificationType type;
 
@@ -53,6 +54,14 @@ public class NotificationMessage {
 
     public void setMeetingLng(Double meetingLng) {
         this.meetingLng = meetingLng;
+    }
+
+    public String getMeetingName() {
+        return meetingName;
+    }
+
+    public void setMeetingName(String meetingName) {
+        this.meetingName = meetingName;
     }
 
     public NotificationType getType() {

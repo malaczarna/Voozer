@@ -234,7 +234,7 @@ public class UserService {
 
     }
 
-    public Position calculateMeetingPoint(List<RoutePoint> driverRoute, Position passengerPosition) throws TransformException, FactoryException {
+    public Stop calculateMeetingPoint(List<RoutePoint> driverRoute, Position passengerPosition) throws TransformException, FactoryException {
         if (driverRoute.size() > 0) {
 
             Position closestDriverPoint = new Position(0D,0D);
@@ -265,7 +265,7 @@ public class UserService {
                 }
             }
 
-            return new Position(closestStop.getLat(), closestStop.getLng());
+            return closestStop;
         }
 
         return null;

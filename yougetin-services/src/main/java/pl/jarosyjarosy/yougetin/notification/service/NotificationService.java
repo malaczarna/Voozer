@@ -15,6 +15,7 @@ import pl.jarosyjarosy.yougetin.notification.model.NotificationType;
 import pl.jarosyjarosy.yougetin.notification.repository.NotificationRepository;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
 import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
+import pl.jarosyjarosy.yougetin.stop.model.Stop;
 import pl.jarosyjarosy.yougetin.trip.model.Trip;
 import pl.jarosyjarosy.yougetin.trip.service.TripService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
@@ -105,10 +106,11 @@ public class NotificationService {
 
     private Notification creteAndSend(Notification notification) throws FirebaseMessagingException, TransformException, FactoryException {
         LOGGER.info("LOGGER: create notification from {} to {}", notification.getPassengerId(), notification.getDriverId());
-        Position meetingPosition = calculateMeetingPoint(notification.getDriverId(), notification.getPassengerId());
+        Stop meetingStop = calculateMeetingPoint(notification.getDriverId(), notification.getPassengerId());
 
-        notification.setMeetingLat(meetingPosition.getLat());
-        notification.setMeetingLng(meetingPosition.getLng());
+        notification.setMeetingLat(meetingStop.getLat());
+        notification.setMeetingLng(meetingStop.getLng());
+        notification.setMeetingName(meetingStop.getName());
 
         Notification savedNotification = notificationRepository.save(notification);
 
@@ -117,7 +119,7 @@ public class NotificationService {
         return savedNotification;
     }
 
-    Position calculateMeetingPoint(Long driverId, Long passengerId) throws TransformException, FactoryException {
+    Stop calculateMeetingPoint(Long driverId, Long passengerId) throws TransformException, FactoryException {
         LOGGER.info("LOGGER: calculate meeting point for driver {} and passenger {}", driverId, passengerId);
         Position passengerPos = userService.getUserPosition(passengerId);
         User driver = userService.get(driverId);

@@ -38,7 +38,7 @@ public class FCMService {
         this.userRegistrationTokenRepository.deleteByUserId(userId);
     }
 
-    public void sendPushNotification(Notification notification, Long receiverId, String name, NotificationType type, String title, String body) throws FirebaseMessagingException {
+    private void sendPushNotification(Notification notification, Long receiverId, String name, NotificationType type, String title, String body) throws FirebaseMessagingException {
         List<String> registrationTokens = userRegistrationTokenRepository.findTokensByUserId(receiverId);
 
         if (registrationTokens.size() > 0) {
@@ -56,6 +56,7 @@ public class FCMService {
                     .putData("meetingLng", notification.getMeetingLng().toString())
                     .putData("type", type.toString())
                     .putData("name", name)
+                    .putData("meetingName", notification.getMeetingName())
                     .setToken(registrationTokens.get(0))
                     .build();
             String response = FirebaseMessaging.getInstance().send(message);
