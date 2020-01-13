@@ -39,7 +39,7 @@ public class RoutePointService {
     }
     @Transactional
     public List<RoutePoint> saveRoute(List<RoutePoint> points, Long oldDestinationId) {
-        LOGGER.info("LOGGER: saving routePoints for destination {}", points.get(0).getDestinationId());
+        LOGGER.info("LOGGER: saving {} routePoints for destination {}", points.size(), points.get(0).getDestinationId());
         deleteRoutePoints(oldDestinationId);
         Date now = Date.from(clock.instant());
         for (RoutePoint point : points) {

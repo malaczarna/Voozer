@@ -55,6 +55,7 @@ public class FCMService {
                     .putData("meetingLat", notification.getMeetingLat().toString())
                     .putData("meetingLng", notification.getMeetingLng().toString())
                     .putData("type", type.toString())
+                    .putData("name", name)
                     .setToken(registrationTokens.get(0))
                     .build();
             String response = FirebaseMessaging.getInstance().send(message);
