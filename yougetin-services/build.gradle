@@ -9,7 +9,7 @@ apply plugin: 'war'
 war { enabled = true}
 
 group = 'pl.jarosyjarosy'
-version = '0.0.16'
+version = '0.0.18'
 sourceCompatibility = '1.8'
 
 configurations {

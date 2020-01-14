@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component;
 import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.RoleMessage;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.UserMessage;
+import pl.jarosyjarosy.yougetin.user.model.Profile;
 import pl.jarosyjarosy.yougetin.user.model.Role;
+import pl.jarosyjarosy.yougetin.user.model.RoleType;
 import pl.jarosyjarosy.yougetin.user.model.User;
 
 import java.security.NoSuchAlgorithmException;
@@ -32,6 +34,14 @@ public class UserMapperService {
         user.setPassword(passwordService.getPasswordHash(userMessage.getPassword()));
         user.setEmail(userMessage.getEmail());
         user.setName(userMessage.getName());
+        user.setCarBrand(userMessage.getCarBrand());
+        user.setCarColor(userMessage.getCarColor());
+        user.setCarModel(userMessage.getCarModel());
+        if (userMessage.getRoles().stream().anyMatch(roleMessage -> roleMessage.getType().equals(RoleType.DRIVER))) {
+            user.setCurrentProfile(Profile.DRIVER);
+        } else {
+            user.setCurrentProfile(Profile.PASSENGER);
+        }
 
         return user;
     }

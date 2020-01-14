@@ -20,7 +20,7 @@ public class Notification {
     private String meetingName;
 
     private boolean atMeetingPoint;
-
+    @Enumerated(EnumType.STRING)
     private NotificationType type;
 
     public Long getId() {
