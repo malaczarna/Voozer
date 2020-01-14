@@ -126,6 +126,8 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         hideProgressDialog()
         if (drivers.isEmpty()) {
             tvNoDrivers.visibility = View.VISIBLE
+        } else {
+            tvNoDrivers.visibility = View.GONE
         }
         for (driver in drivers) {
             placeDriverMarkerOnMap(LatLng(driver.lat, driver.lng))
@@ -257,7 +259,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 btnCancelRide.text = "Kierowca nie przyjechał na miejsce spotkania!"
             }
             Profile.DRIVER -> {
-                Toast.makeText(applicationContext, "Pasażer zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
                 btnFinishRide.text = "Pasażer wysiadł z samochodu."
                 btnCancelRide.text = "Pasażer nie przyjechał na miejsce spotkania!"
                 val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + user.destination.lat +"," + user.destination.lng + "&waypoints=" +  SharedPreferencesHelper.getMeetingLat(applicationContext) +"," + SharedPreferencesHelper.getMeetingLng(applicationContext) + "&travelmode=driving")
