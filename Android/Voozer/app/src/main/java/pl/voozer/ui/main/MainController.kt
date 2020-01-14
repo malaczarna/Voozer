@@ -57,7 +57,7 @@ class MainController : BaseController<MainView>() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(
-                { user -> view.updateSpecificUser(user) },
+                { user -> view.updateOppositeUser(user) },
                 { error: Throwable ->
                     Log.d("Error", error.localizedMessage)
                 }

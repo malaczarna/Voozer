@@ -31,6 +31,8 @@ class NotificationService: FirebaseMessagingService() {
         val data = remoteMessage.data
         val driverId = data["driverId"]
         val passengerId = data["passengerId"]
+        val personName = data["name"]
+        val meetingName = data["meetingName"]
         val meetingLat = data["meetingLat"]
         val meetingLng = data["meetingLng"]
         val notificationType = data["type"]
@@ -40,6 +42,8 @@ class NotificationService: FirebaseMessagingService() {
         intent.putExtra("meetingLat", meetingLat)
         intent.putExtra("meetingLng", meetingLng)
         intent.putExtra("type", notificationType)
+        intent.putExtra("name", personName)
+        intent.putExtra("meetingName", meetingName)
         this.sendBroadcast(intent)
     }
 }

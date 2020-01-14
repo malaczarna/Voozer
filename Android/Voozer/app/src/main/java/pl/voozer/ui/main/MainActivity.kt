@@ -14,7 +14,6 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.location.Location
 import android.net.Uri
-import android.os.Build
 import android.os.Handler
 import android.provider.Settings
 import android.util.Log
@@ -27,6 +26,7 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -73,11 +73,11 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
     private lateinit var lastLocation: Location
     private lateinit var destination: Destination
     private lateinit var place: Place
-    private lateinit var routePoints: List<LatLng>
+    private var routePoints: List<LatLng> = emptyList()
     private lateinit var user: User
     private lateinit var toolbar: Toolbar
     private lateinit var navView: NavigationView
-    private lateinit var specificUser: User
+    private lateinit var oppositeUser: User
     private lateinit var driverId: String
     private lateinit var passengerId: String
     private var requestingLocationUpdates: Boolean = false
@@ -187,11 +187,15 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
         when (SharedPreferencesHelper.isTripActive(applicationContext)) {
             true -> {
+                val oppositeUser = SharedPreferencesHelper.getData<User>(context = applicationContext, key = "opposite-user-data")
+                tvSplTitle.text = "Informacje"
+                tvPersonPhone.text = HtmlCompat.fromHtml("<b>Numer telefonu: </b>${oppositeUser?.phoneNumber}", HtmlCompat.FROM_HTML_MODE_LEGACY)
+                tvInformationMeetingPoint.text = HtmlCompat.fromHtml("<b>Punkt spotkania: </b>ul. ${SharedPreferencesHelper.getMeetingName(applicationContext)}", HtmlCompat.FROM_HTML_MODE_LEGACY)
                 when (user.profile) {
                     Profile.DRIVER -> {
                         llDrivers.visibility = View.GONE
                         llInformation.visibility = View.VISIBLE
-                        tvSplTitle.text = "Informacje"
+                        btnFinishRide.text = "Pasażer wysiadł z samochodu."
                         btnCancelRide.text = "Pasażer nie przyjechał na miejsce spotkania!"
                         splMain.anchorPoint = 0.5f
                         ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
@@ -207,7 +211,11 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     Profile.PASSENGER -> {
                         llDrivers.visibility = View.GONE
                         llInformation.visibility = View.VISIBLE
-                        tvSplTitle.text = "Informacje"
+                        tvCarBrand.text = HtmlCompat.fromHtml("<b>Marka: </b> ${oppositeUser?.carBrand}", HtmlCompat.FROM_HTML_MODE_LEGACY)
+                        tvCarModel.text = HtmlCompat.fromHtml("<b>Model: </b> ${oppositeUser?.carModel}", HtmlCompat.FROM_HTML_MODE_LEGACY)
+                        tvCarColor.text = HtmlCompat.fromHtml("<b>Kolor: </b> ${oppositeUser?.carColor}", HtmlCompat.FROM_HTML_MODE_LEGACY)
+                        llInformationDriver.visibility = View.VISIBLE
+                        btnFinishRide.text = "Dojechałem na miejsce."
                         btnCancelRide.text = "Kierowca nie przyjechał na miejsce spotkania!"
                         splMain.anchorPoint = 0.5f
                         ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
@@ -225,23 +233,41 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         }
     }
 
-    override fun updateSpecificUser(user: User) {
-        specificUser = user
-        tvSplTitle.text = "Użytkownik ${specificUser.name} prosi o podwóżkę."
+    override fun updateOppositeUser(user: User) {
+        hideProgressDialog()
+        oppositeUser = user
+        SharedPreferencesHelper.setTripActive(context = applicationContext, value = true)
+        SharedPreferencesHelper.setData(context = applicationContext, key = "opposite-user-data", data = oppositeUser)
+        requestingLocationUpdates = true
+        startLocationUpdates()
         llDrivers.visibility = View.GONE
-        llPassengers.visibility = View.VISIBLE
-        splMain.anchorPoint = 0.6f
-        ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
-            duration = 300
-            start()
+        llPassengers.visibility = View.GONE
+        tvSplTitle.text = "Informacje"
+        tvPersonPhone.text = HtmlCompat.fromHtml("<b>Numer telefonu: </b>${oppositeUser.phoneNumber}", HtmlCompat.FROM_HTML_MODE_LEGACY)
+        tvInformationMeetingPoint.text = HtmlCompat.fromHtml("<b>Punkt spotkania: </b>ul. ${SharedPreferencesHelper.getMeetingName(applicationContext)}", HtmlCompat.FROM_HTML_MODE_LEGACY)
+        when (this.user.profile) {
+            Profile.PASSENGER -> {
+                waitingDialog?.dismiss()
+                tvCarBrand.text = HtmlCompat.fromHtml("<b>Marka: </b> ${oppositeUser.carBrand}", HtmlCompat.FROM_HTML_MODE_LEGACY)
+                tvCarModel.text = HtmlCompat.fromHtml("<b>Model: </b> ${oppositeUser.carModel}", HtmlCompat.FROM_HTML_MODE_LEGACY)
+                tvCarColor.text = HtmlCompat.fromHtml("<b>Kolor: </b> ${oppositeUser.carColor}", HtmlCompat.FROM_HTML_MODE_LEGACY)
+                llInformationDriver.visibility = View.VISIBLE
+                Toast.makeText(applicationContext, "Kierowca zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
+                btnFinishRide.text = "Dojechałem na miejsce."
+                btnCancelRide.text = "Kierowca nie przyjechał na miejsce spotkania!"
+            }
+            Profile.DRIVER -> {
+                Toast.makeText(applicationContext, "Pasażer zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
+                btnFinishRide.text = "Pasażer wysiadł z samochodu."
+                btnCancelRide.text = "Pasażer nie przyjechał na miejsce spotkania!"
+                val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + user.destination.lat +"," + user.destination.lng + "&waypoints=" +  SharedPreferencesHelper.getMeetingLat(applicationContext) +"," + SharedPreferencesHelper.getMeetingLng(applicationContext) + "&travelmode=driving")
+                val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
+                mapIntent.setPackage("com.google.android.apps.maps")
+                startActivity(mapIntent)
+            }
         }
-        Handler().postDelayed(
-            {
-                splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
-            },300L
-        )
-        placePassengerMarkerOnMap(LatLng(meetingLat!!, meetingLng!!))
-
+        llInformation.visibility = View.VISIBLE
+        splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
     }
 
     override fun setRoute(direction: Direction) {
@@ -334,7 +360,11 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 when (resultCode) {
                     RESULT_OK -> {
                         place = Autocomplete.getPlaceFromIntent(data)
-                        place.latLng?.let { placeDestinationMarkerOnMap(it) }
+                        place.latLng?.let {
+                            SharedPreferencesHelper.setDestinationLat(applicationContext, it.latitude.toString())
+                            SharedPreferencesHelper.setDestinationLng(applicationContext, it.longitude.toString())
+                            placeDestinationMarkerOnMap(it)
+                        }
                         tvSearch.text = place.address
                         if (ContextCompat.checkSelfPermission(
                                 applicationContext,
@@ -420,29 +450,38 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                     val driverId = bundle.getString("driverId", "0")
                     val passengerId = bundle.getString("passengerId", "0")
                     val notificationType = bundle.getString("type", "0")
+                    val personName = bundle.getString("name", "0")
+                    val meetingName = bundle.getString("meetingName", "0")
                     this@MainActivity.passengerId = passengerId
                     this@MainActivity.driverId = driverId
                     this@MainActivity.meetingLat = bundle.getString("meetingLat", "0.0").toDouble()
                     this@MainActivity.meetingLng = bundle.getString("meetingLng", "0.0").toDouble()
+                    SharedPreferencesHelper.setMeetingName(applicationContext, bundle.getString("meetingName", "0"))
                     SharedPreferencesHelper.setMeetingLat(applicationContext, bundle.getString("meetingLat", "0.0"))
                     SharedPreferencesHelper.setMeetingLng(applicationContext, bundle.getString("meetingLng", "0.0"))
                     SharedPreferencesHelper.setDriverId(applicationContext, bundle.getString("driverId", "0"))
                     SharedPreferencesHelper.setPassengerId(applicationContext, bundle.getString("passengerId", "0"))
                     when (notificationType) {
                         NotificationType.ASK.name -> {
-                            controller.loadSpecificUser(passengerId)
+                            tvSplTitle.text = "Użytkownik $personName prosi o podwóżkę."
+                            tvPassengerMeetingPoint.text = HtmlCompat.fromHtml("<b>Punkt spotkania: </b>ul. $meetingName", HtmlCompat.FROM_HTML_MODE_LEGACY)
+                            llDrivers.visibility = View.GONE
+                            llPassengers.visibility = View.VISIBLE
+                            splMain.anchorPoint = 0.6f
+                            ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
+                                duration = 300
+                                start()
+                            }
+                            Handler().postDelayed(
+                                {
+                                    splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+                                },300L
+                            )
                         }
                         NotificationType.ACCEPT.name -> {
-                            waitingDialog?.dismiss()
-                            Toast.makeText(applicationContext, "Kierowca zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
-                            SharedPreferencesHelper.setTripActive(context = applicationContext, value = true)
-                            requestingLocationUpdates = true
-                            startLocationUpdates()
-                            llDrivers.visibility = View.GONE
-                            tvSplTitle.text = "Informacje"
-                            btnCancelRide.text = "Kierowca nie przyjechał na miejsce spotkania!"
-                            llInformation.visibility = View.VISIBLE
-                            splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+                            showProgressDialog()
+                            splMain.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+                            controller.loadSpecificUser(SharedPreferencesHelper.getDriverId(applicationContext)!!)
                         }
                         NotificationType.DECLINE.name -> {
                             when (user.profile) {
@@ -510,10 +549,6 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
         initLocationCallback()
         initOnClickListeners()
         //SharedPreferencesHelper.setTripActive(applicationContext, value = false) //TODO: For testing
-        SharedPreferencesHelper.setMeetingLat(applicationContext, value = null)
-        SharedPreferencesHelper.setMeetingLng(applicationContext, value = null)
-        SharedPreferencesHelper.setDriverId(applicationContext, value = null)
-        SharedPreferencesHelper.setPassengerId(applicationContext, value = null)
     }
 
     private fun initNotificationReceiver() {
@@ -522,30 +557,38 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 val driverId = intent.getStringExtra("driverId")
                 val passengerId = intent.getStringExtra("passengerId")
                 val notificationType = intent.getStringExtra("type")
+                val personName = intent.getStringExtra("name")
+                val meetingName = intent.getStringExtra("meetingName")
                 this@MainActivity.passengerId = passengerId
                 this@MainActivity.driverId = driverId
                 this@MainActivity.meetingLat = intent.getStringExtra("meetingLat").toDouble()
                 this@MainActivity.meetingLng = intent.getStringExtra("meetingLng").toDouble()
+                SharedPreferencesHelper.setMeetingName(applicationContext, intent.getStringExtra("meetingName"))
                 SharedPreferencesHelper.setMeetingLat(applicationContext, intent.getStringExtra("meetingLat"))
                 SharedPreferencesHelper.setMeetingLng(applicationContext, intent.getStringExtra("meetingLng"))
                 SharedPreferencesHelper.setDriverId(applicationContext, intent.getStringExtra("driverId"))
                 SharedPreferencesHelper.setPassengerId(applicationContext, intent.getStringExtra("passengerId"))
                 when (notificationType) {
                     NotificationType.ASK.name -> {
-                        controller.loadSpecificUser(passengerId)
+                        tvSplTitle.text = "Użytkownik $personName prosi o podwóżkę."
+                        tvPassengerMeetingPoint.text = HtmlCompat.fromHtml("<b>Punkt spotkania: </b>ul. $meetingName", HtmlCompat.FROM_HTML_MODE_LEGACY)
+                        llDrivers.visibility = View.GONE
+                        llPassengers.visibility = View.VISIBLE
+                        splMain.anchorPoint = 0.6f
+                        ObjectAnimator.ofFloat(llFabButtons, "translationY", -splMain.panelHeight.toFloat()).apply {
+                            duration = 300
+                            start()
+                        }
+                        Handler().postDelayed(
+                            {
+                                splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
+                            },300L
+                        )
                     }
                     NotificationType.ACCEPT.name -> {
-                        waitingDialog?.dismiss()
-                        Toast.makeText(applicationContext, "Kierowca zaakceptował przejażdżkę!", Toast.LENGTH_LONG).show()
-                        SharedPreferencesHelper.setTripActive(context = applicationContext, value = true)
-                        requestingLocationUpdates = true
-                        startLocationUpdates()
-                        llDrivers.visibility = View.GONE
-                        tvSplTitle.text = "Informacje"
-                        btnCancelRide.text = "Kierowca nie przyjechał na miejsce spotkania!"
-                        llInformation.visibility = View.VISIBLE
-                        splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
-
+                        showProgressDialog()
+                        splMain.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
+                        controller.loadSpecificUser(SharedPreferencesHelper.getDriverId(applicationContext)!!)
                     }
                     NotificationType.DECLINE.name -> {
                         when (user.profile) {
@@ -684,9 +727,9 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             fabCancelRide.animate().alpha(1f).setDuration(1000).withStartAction {
                 fabCancelRide.show()
             }
-            startService(
-                Intent(applicationContext, FloatingService::class.java).putExtra("message", "Serwus, to ja Twoj bombel!")
-            )
+//            startService(
+//                Intent(applicationContext, FloatingService::class.java).putExtra("message", "Serwus, to ja Twoj bombel!")
+//            )
             btnAcceptDestination.isEnabled = false
             val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + destination.lat +"," + destination.lng + "&travelmode=driving")
             val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
@@ -723,26 +766,13 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             }
         }
         btnAcceptPassenger.setOnClickListener {
-            SharedPreferencesHelper.setTripActive(context = applicationContext, value = true)
-            controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.ACCEPT))
+            showProgressDialog()
             splMain.panelState = SlidingUpPanelLayout.PanelState.COLLAPSED
-            llPassengers.visibility = View.GONE
-            llInformation.visibility = View.VISIBLE
-            tvSplTitle.text = "Informacje"
-            btnCancelRide.text = "Pasażer nie przyjechał na miejsce spotkania!"
-            splMain.anchorPoint = 0.5f
-            Handler().postDelayed(
-                {
-                    splMain.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
-                },300L
-            )
-            val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + user.destination.lat +"," + user.destination.lng + "&waypoints=" +  meetingLat +"," + meetingLng + "&travelmode=driving")
-            val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
-            mapIntent.setPackage("com.google.android.apps.maps")
-            startActivity(mapIntent)
+            controller.sendNotification(NotificationMessage(passengerId = SharedPreferencesHelper.getPassengerId(applicationContext)!!.toLong(), driverId = user.id, notificationType = NotificationType.ACCEPT))
+            controller.loadSpecificUser(SharedPreferencesHelper.getPassengerId(context = applicationContext)!!)
         }
         btnCancelPassenger.setOnClickListener {
-            controller.sendNotification(NotificationMessage(passengerId = specificUser.id, driverId = user.id, notificationType = NotificationType.DECLINE))
+            controller.sendNotification(NotificationMessage(passengerId = SharedPreferencesHelper.getPassengerId(applicationContext)!!.toLong(), driverId = user.id, notificationType = NotificationType.DECLINE))
         }
         btnStartNavigation.setOnClickListener {
             val navigationIntentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$meetingLat,$meetingLng&travelmode=walking")
@@ -750,9 +780,32 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
             mapIntent.setPackage("com.google.android.apps.maps")
             startActivity(mapIntent)
         }
+        btnFinishRide.setOnClickListener {
+            removeMarkers()
+            SharedPreferencesHelper.setTripActive(context = applicationContext, value = false)
+            SharedPreferencesHelper.setMeetingName(context = applicationContext, value = null)
+            SharedPreferencesHelper.setMeetingLat(context = applicationContext, value = null)
+            SharedPreferencesHelper.setMeetingLng(context = applicationContext, value = null)
+            SharedPreferencesHelper.setDriverId(context = applicationContext, value = null)
+            SharedPreferencesHelper.setPassengerId(context = applicationContext, value = null)
+            llInformation.visibility = View.GONE
+            llDrivers.visibility = View.VISIBLE
+            tvSearch.text = getString(R.string.search_bar_title)
+            splMain.panelState = SlidingUpPanelLayout.PanelState.HIDDEN
+            ObjectAnimator.ofFloat(llFabButtons, "translationY", 0f).apply {
+                duration = 1000
+                start()
+            }
+            llSearchBar.isEnabled = true
+        }
         btnCancelRide.setOnClickListener {
             removeMarkers()
             SharedPreferencesHelper.setTripActive(context = applicationContext, value = false)
+            SharedPreferencesHelper.setMeetingName(context = applicationContext, value = null)
+            SharedPreferencesHelper.setMeetingLat(context = applicationContext, value = null)
+            SharedPreferencesHelper.setMeetingLng(context = applicationContext, value = null)
+            SharedPreferencesHelper.setDriverId(context = applicationContext, value = null)
+            SharedPreferencesHelper.setPassengerId(context = applicationContext, value = null)
             llInformation.visibility = View.GONE
             llDrivers.visibility = View.VISIBLE
             tvSearch.text = getString(R.string.search_bar_title)
@@ -771,7 +824,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                 locationResult ?: return
                 for (location in locationResult.locations){
                     if (isDestinationReloadNeeded) {
-                        controller.setDestination(destination)
+                        controller.setDestination(destination = user.destination)
                         isDestinationReloadNeeded = false
                     }
                     if (!PolyUtil.isLocationOnPath(LatLng(location.latitude, location.longitude), routePoints, false, TOLERANCE)) {
@@ -781,7 +834,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                                 controller.loadDirection(
                                     api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
                                     origin = "${lastLocation.latitude},${lastLocation.longitude}",
-                                    destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                                    destination = "${SharedPreferencesHelper.getDestinationLat(applicationContext)!!.toDouble()},${SharedPreferencesHelper.getDestinationLng(applicationContext)!!.toDouble()}",
                                     travelMode = TRAVEL_MODE_DRIVING,
                                     key = BuildConfig.GOOGLE_API_KEY
                                 )
@@ -790,7 +843,7 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
                                 controller.loadDirection(
                                     api = Connection.Builder().provideOkHttpClient(applicationContext).provideRetrofit(url = DIRECTIONS_URL).createApi(),
                                     origin = "${lastLocation.latitude},${lastLocation.longitude}",
-                                    destination = "${place.latLng!!.latitude},${place.latLng!!.longitude}",
+                                    destination = "${SharedPreferencesHelper.getDestinationLat(applicationContext)!!.toDouble()},${SharedPreferencesHelper.getDestinationLng(applicationContext)!!.toDouble()}",
                                     travelMode = TRAVEL_MODE_WALKING,
                                     key = BuildConfig.GOOGLE_API_KEY
                                 )

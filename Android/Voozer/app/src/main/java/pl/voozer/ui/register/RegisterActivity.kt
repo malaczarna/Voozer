@@ -1,7 +1,6 @@
 package pl.voozer.ui.register
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import com.afollestad.materialdialogs.MaterialDialog
 import kotlinx.android.synthetic.main.activity_register.*
@@ -14,6 +13,8 @@ import pl.voozer.service.network.Connection
 import pl.voozer.ui.base.BaseActivity
 
 class RegisterActivity : BaseActivity<RegisterController, RegisterView>(), RegisterView {
+
+    var registerAsDriver = false
 
     override fun register() {
         hideProgressDialog()
@@ -38,8 +39,9 @@ class RegisterActivity : BaseActivity<RegisterController, RegisterView>(), Regis
             cancelOnTouchOutside(false)
             noAutoDismiss()
             negativeButton(R.string.menu_driver) {
+                this@RegisterActivity.registerAsDriver = true
                 this@RegisterActivity.tvAdditionalCarInfo.visibility = View.VISIBLE
-                this@RegisterActivity. tilCarBrand.visibility = View.VISIBLE
+                this@RegisterActivity.tilCarBrand.visibility = View.VISIBLE
                 this@RegisterActivity.tilCarModel.visibility = View.VISIBLE
                 this@RegisterActivity.tilCarColor.visibility = View.VISIBLE
                 dismiss()
@@ -48,16 +50,41 @@ class RegisterActivity : BaseActivity<RegisterController, RegisterView>(), Regis
                 dismiss()
             }
         }
+        tilCarBrand.editText?.text.toString()
+        tilCarModel.editText?.text.toString()
+        tilCarColor.editText?.text.toString()
         btnRegister.setOnClickListener {
             showProgressDialog()
-            controller.register(
-                Register(
-                    tilName.editText?.text.toString(),
-                    tilEmail.editText?.text.toString(),
-                    tilPassword.editText?.text.toString(),
-                    listOf(Roles(Profile.PASSENGER), Roles(Profile.DRIVER))
-                )
-            )
+            when(registerAsDriver) {
+                true -> {
+                    controller.register(
+                        Register(
+                            tilName.editText?.text.toString(),
+                            tilPhone.editText?.text.toString(),
+                            tilEmail.editText?.text.toString(),
+                            tilPassword.editText?.text.toString(),
+                            tilCarBrand.editText?.text.toString(),
+                            tilCarModel.editText?.text.toString(),
+                            tilCarColor.editText?.text.toString(),
+                            listOf(Roles(Profile.PASSENGER), Roles(Profile.DRIVER))
+                        )
+                    )
+                }
+                false -> {
+                    controller.register(
+                        Register(
+                            tilName.editText?.text.toString(),
+                            tilPhone.editText?.text.toString(),
+                            tilEmail.editText?.text.toString(),
+                            tilPassword.editText?.text.toString(),
+                            tilCarBrand.editText?.text.toString(),
+                            tilCarModel.editText?.text.toString(),
+                            tilCarColor.editText?.text.toString(),
+                            listOf(Roles(Profile.PASSENGER))
+                        )
+                    )
+                }
+            }
         }
     }
 

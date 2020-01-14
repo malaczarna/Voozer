@@ -215,16 +215,6 @@
                         android:src="@drawable/ic_walking"/>
 
                 <TextView
-                        android:id="@+id/tvPassengerPhone"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="18sp"
-                        android:textAlignment="textStart"
-                        android:textColor="@android:color/black"
-                        android:layout_margin="12dp"
-                        android:text="111-222-333"/>
-
-                <TextView
                         android:id="@+id/tvPassengerMeetingPoint"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -303,6 +293,45 @@
                         android:text="Aleje Solidarności"/>
 
                 <LinearLayout
+                        android:id="@+id/llInformationDriver"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:orientation="vertical">
+
+                    <TextView
+                            android:id="@+id/tvCarBrand"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="18sp"
+                            android:textAlignment="textStart"
+                            android:textColor="@android:color/black"
+                            android:layout_margin="12dp"
+                            android:text="Volkswagen"/>
+
+                    <TextView
+                            android:id="@+id/tvCarModel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="18sp"
+                            android:textAlignment="textStart"
+                            android:textColor="@android:color/black"
+                            android:layout_margin="12dp"
+                            android:text="Golf V"/>
+
+                    <TextView
+                            android:id="@+id/tvCarColor"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="18sp"
+                            android:textAlignment="textStart"
+                            android:textColor="@android:color/black"
+                            android:layout_margin="12dp"
+                            android:text="Czarny"/>
+
+                </LinearLayout>
+
+                <LinearLayout
                         android:id="@+id/llInformationButtons"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -319,6 +348,19 @@
                             android:textColor="@android:color/white"
                             android:layout_weight="1"
                             android:text="Nawiguj"/>
+
+                    <Button
+                            android:id="@+id/btnFinishRide"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:background="@android:color/holo_green_dark"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginEnd="16dp"
+                            android:layout_marginTop="8dp"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:textColor="@android:color/white"
+                            android:layout_weight="1"
+                            android:text="Zakończ"/>
 
                     <Button
                             android:id="@+id/btnCancelRide"
