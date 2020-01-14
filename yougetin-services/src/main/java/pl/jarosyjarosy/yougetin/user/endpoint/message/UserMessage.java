@@ -1,6 +1,7 @@
 package pl.jarosyjarosy.yougetin.user.endpoint.message;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import pl.jarosyjarosy.yougetin.destination.endpoint.model.DestinationMessage;
 import pl.jarosyjarosy.yougetin.destination.model.Destination;
 import pl.jarosyjarosy.yougetin.user.model.Profile;
 
@@ -14,10 +15,14 @@ public class UserMessage {
     private String name;
     private String email;
     private String password;
+    private String phoneNumber;
+    private String carBrand;
+    private String carModel;
+    private String carColor;
     private Date createDate;
     private Date lastActivity;
     private Boolean active;
-    private Destination destination;
+    private DestinationMessage destination;
     private Boolean blocked;
 
     private Double lat;
@@ -59,6 +64,38 @@ public class UserMessage {
         this.password = password;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getCarBrand() {
+        return carBrand;
+    }
+
+    public void setCarBrand(String carBrand) {
+        this.carBrand = carBrand;
+    }
+
+    public String getCarModel() {
+        return carModel;
+    }
+
+    public void setCarModel(String carModel) {
+        this.carModel = carModel;
+    }
+
+    public String getCarColor() {
+        return carColor;
+    }
+
+    public void setCarColor(String carColor) {
+        this.carColor = carColor;
+    }
+
     public Date getCreateDate() {
         return createDate;
     }
@@ -83,11 +120,11 @@ public class UserMessage {
         this.active = active;
     }
 
-    public Destination getDestination() {
+    public DestinationMessage getDestination() {
         return destination;
     }
 
-    public void setDestination(Destination destination) {
+    public void setDestination(DestinationMessage destination) {
         this.destination = destination;
     }
 

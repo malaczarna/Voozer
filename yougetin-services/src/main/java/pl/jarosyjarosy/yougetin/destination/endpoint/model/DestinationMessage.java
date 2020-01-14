@@ -15,7 +15,7 @@ public class DestinationMessage {
     private Date createDate;
     private Double lat;
     private Double lng;
-    private List<Position> route;
+    private List<PositionWithTime> route;
 
     public Long getId() {
         return id;
@@ -65,11 +65,11 @@ public class DestinationMessage {
         this.lng = lng;
     }
 
-    public List<Position> getRoute() {
+    public List<PositionWithTime> getRoute() {
         return route;
     }
 
-    public void setRoute(List<Position> route) {
+    public void setRoute(List<PositionWithTime> route) {
         this.route = route;
     }
 }

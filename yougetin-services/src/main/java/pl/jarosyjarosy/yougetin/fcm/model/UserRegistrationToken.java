@@ -8,7 +8,7 @@ import javax.persistence.*;
 @Table(name = "user_registration_tokens")
 public class UserRegistrationToken {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long userId;
     private String registrationToken;

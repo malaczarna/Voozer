@@ -14,5 +14,5 @@ import java.util.List;
 @Repository
 @Transactional
 public interface DestinationRepository extends CrudRepository<Destination, Long>, QueryByExampleExecutor<Destination> {
-    List<Destination> getAllByUserId(Long userId);
+    List<Destination> getAllByUserIdOrderByCreateDateDesc(Long userId);
 }

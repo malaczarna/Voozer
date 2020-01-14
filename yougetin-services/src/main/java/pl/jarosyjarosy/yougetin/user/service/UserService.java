@@ -16,6 +16,9 @@ import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
 import pl.jarosyjarosy.yougetin.rest.RecordNotFoundException;
 import pl.jarosyjarosy.yougetin.routepoint.model.RoutePoint;
 import pl.jarosyjarosy.yougetin.routepoint.service.RoutePointService;
+import pl.jarosyjarosy.yougetin.stop.model.Stop;
+import pl.jarosyjarosy.yougetin.stop.repository.StopRepository;
+import pl.jarosyjarosy.yougetin.stop.service.StopService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.Position;
 import pl.jarosyjarosy.yougetin.user.model.Profile;
 import pl.jarosyjarosy.yougetin.user.model.Role;
@@ -36,26 +39,29 @@ public class UserService {
 
     private UserRepository userRepository;
     private UserValidationService userValidationService;
-    private RoutePointService routePointService;
     private RoleRepository roleRepository;
+    private StopRepository stopRepository;
+    private RoutePointService routePointService;
     private Clock clock;
 
     @Autowired
     public UserService(UserRepository userRepository,
                        UserValidationService userValidationService,
-                       RoutePointService routePointService,
                        RoleRepository roleRepository,
+                       StopRepository stopRepository,
+                       RoutePointService routePointService,
                        Clock clock) {
         this.userRepository = userRepository;
         this.userValidationService = userValidationService;
-        this.routePointService = routePointService;
         this.roleRepository = roleRepository;
+        this.stopRepository = stopRepository;
+        this.routePointService = routePointService;
         this.clock = clock;
     }
 
     public User get(Long id) {
         LOGGER.info("LOGGER: get user {}", id);
-        if(userRepository.findById(id).isPresent()) {
+        if (userRepository.findById(id).isPresent()) {
             return userRepository.findById(id).get();
         } else {
             throw new RecordNotFoundException();
@@ -91,7 +97,7 @@ public class UserService {
             user.setActive(true);
         }
 
-        if (user.getCurrentProfile()  == null) {
+        if (user.getCurrentProfile() == null) {
             user.setCurrentProfile(Profile.PASSENGER);
         }
 
@@ -138,7 +144,7 @@ public class UserService {
     public List<User> getUsersWithDifferentProfile(Long id) {
         LOGGER.info("LOGGER: get different then user {} profile ", id);
         User user = get(id);
-        if (user.getCurrentProfile() != null && user.getCurrentProfile().equals(Profile.DRIVER)){
+        if (user.getCurrentProfile() != null && user.getCurrentProfile().equals(Profile.DRIVER)) {
             return userRepository.findAllByCurrentProfile(Profile.PASSENGER);
         } else {
             return userRepository.findAllByCurrentProfile(Profile.DRIVER);
@@ -155,6 +161,7 @@ public class UserService {
         user.setDestinationId(-1L);
         userRepository.save(user);
     }
+
     @Transactional
     public void setLastActivity(Long id) {
         User user = get(id);
@@ -163,9 +170,20 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public List<User> getActiveDrivers() {
-        LOGGER.info("LOGGER: get active drivers");
-        return userRepository.findActiveDrivers();
+    public List<User> getSortedActiveDrivers(Destination destination, User passenger) throws TransformException, FactoryException {
+        LOGGER.info("LOGGER: get sorted active drivers for passenger {}", passenger.getId());
+
+        List<User> drivers = userRepository.findActiveDrivers();
+
+        Map<User, Double> driverDistanceMap = new HashMap<>();
+        for (User driver : drivers) {
+            List<RoutePoint> driversRoute = routePointService.getRoute(driver.getDestinationId());
+            Double distance = calculateMinimumDistanceToRoute(driversRoute, new Position(passenger.getLat(), passenger.getLng()));
+            distance += calculateMinimumDistanceToRoute(driversRoute, new Position(destination.getLat(), destination.getLng()));
+            driverDistanceMap.put(driver, distance);
+        }
+
+        return driverDistanceMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).map(Map.Entry::getKey).collect(Collectors.toList());
     }
 
     @Transactional
@@ -192,28 +210,65 @@ public class UserService {
         return gc.getOrthodromicDistance();
     }
 
-//    private Double getDistanceBetweenDestinationAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
-//
-//        Position passengerDestinationPoint = new Position(destinationService.get(passenger.getDestinationId()).getLat(), destinationService.get(passenger.getDestinationId()).getLng());
-//
-//        return calculateMinimumDistanceToRoute(driverRoute, passengerDestinationPoint);
-//    }
-
-    private Double getDistanceBetweenPassengerAndRoute(User passenger, List<RoutePoint> driverRoute) throws TransformException, FactoryException {
-        return calculateMinimumDistanceToRoute(driverRoute, getUserPosition(passenger.getId()));
-    }
-
     public Double calculateMinimumDistanceToRoute(List<RoutePoint> driverRoute, Position position) throws TransformException, FactoryException {
         Double distance = -1D;
         Double distanceToCheck;
-        for (RoutePoint point: driverRoute) {
+        for (RoutePoint point : driverRoute) {
             distanceToCheck = calculateDistanceBetweenTwoPositions(new Position(point.getLat(), point.getLng()), position);
-            if (distance >  distanceToCheck || distance == -1) {
+            if (distance > distanceToCheck || distance == -1) {
                 distance = distanceToCheck;
             }
         }
 
         return distance;
+    }
+
+    private boolean checkIfPassengerWontBeLate(Double distance, RoutePoint point) {
+        Date now = Date.from(clock.instant());
+        Double secondsToWalk =  distance.longValue()/1.5;
+        Date passengerToBeOnPoint = Date.from(now.toInstant().plusSeconds(secondsToWalk.longValue()));
+
+        Date driverToBeOnPoint = Date.from(point.getCreateDate().toInstant().plusSeconds(point.getSeconds()));
+
+        return passengerToBeOnPoint.getTime() < driverToBeOnPoint.getTime();
+
+    }
+
+    public Stop calculateMeetingPoint(List<RoutePoint> driverRoute, Position passengerPosition) throws TransformException, FactoryException {
+        if (driverRoute.size() > 0) {
+
+            Position closestDriverPoint = new Position(0D,0D);
+            Double distance = -1D;
+            Double distanceToCheck;
+            for (RoutePoint point : driverRoute) {
+                distanceToCheck = calculateDistanceBetweenTwoPositions(new Position(point.getLat(), point.getLng()), passengerPosition);
+                if (distance > distanceToCheck || distance == -1) {
+                    //if (checkIfPassengerWontBeLate(distanceToCheck, point)) {
+                        distance = distanceToCheck;
+                        closestDriverPoint = new Position(point.getLat(), point.getLng());
+                    //}
+                }
+            }
+
+            if (closestDriverPoint.equals(new Position(0D, 0D))) {
+               throw new MeetingPointNotFoundException("Users cannot meet");
+            }
+
+            Stop closestStop = new Stop();
+            Double stopDistance = -1D;
+            Double stopDistanceToCheck;
+            for (Stop stop : stopRepository.findAll()) {
+                stopDistanceToCheck = calculateDistanceBetweenTwoPositions(new Position(stop.getLat(), stop.getLng()), closestDriverPoint);
+                if (stopDistance > stopDistanceToCheck || stopDistance == -1) {
+                    stopDistance = stopDistanceToCheck;
+                    closestStop = stop;
+                }
+            }
+
+            return closestStop;
+        }
+
+        return null;
     }
 
 }

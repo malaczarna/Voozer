@@ -1,15 +1,20 @@
 package pl.jarosyjarosy.yougetin.routepoint.model;
 
+import com.google.common.base.Objects;
+
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "route_points")
 public class RoutePoint {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Double lat;
     private Double lng;
+    private Long seconds;
+    private Date createDate;
 
     private Long destinationId;
 
@@ -37,6 +42,22 @@ public class RoutePoint {
         this.lng = lng;
     }
 
+    public Long getSeconds() {
+        return seconds;
+    }
+
+    public void setSeconds(Long seconds) {
+        this.seconds = seconds;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
     public Long getDestinationId() {
         return destinationId;
     }
@@ -47,9 +68,27 @@ public class RoutePoint {
 
     public RoutePoint(){ }
 
-    public RoutePoint(Double lat, Double lng, Long destinationId) {
+    public RoutePoint(Double lat, Double lng, Long seconds, Long destinationId) {
         this.lat = lat;
         this.lng = lng;
+        this.seconds = seconds;
         this.destinationId = destinationId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RoutePoint point = (RoutePoint) o;
+        return Objects.equal(id, point.id) &&
+                Objects.equal(lat, point.lat) &&
+                Objects.equal(lng, point.lng) &&
+                Objects.equal(seconds, point.seconds) &&
+                Objects.equal(destinationId, point.destinationId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id, lat, lng, seconds, destinationId);
     }
 }

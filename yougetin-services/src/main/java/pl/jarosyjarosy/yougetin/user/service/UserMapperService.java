@@ -3,10 +3,13 @@ package pl.jarosyjarosy.yougetin.user.service;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import pl.jarosyjarosy.yougetin.destination.service.DestinationMapperService;
 import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.RoleMessage;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.UserMessage;
+import pl.jarosyjarosy.yougetin.user.model.Profile;
 import pl.jarosyjarosy.yougetin.user.model.Role;
+import pl.jarosyjarosy.yougetin.user.model.RoleType;
 import pl.jarosyjarosy.yougetin.user.model.User;
 
 import java.security.NoSuchAlgorithmException;
@@ -18,11 +21,15 @@ import java.util.stream.Collectors;
 @Component
 public class UserMapperService {
     private PasswordService passwordService;
+    private DestinationMapperService destinationMapperService;
     private DestinationService destinationService;
 
     @Autowired
-    public UserMapperService(PasswordService passwordService, DestinationService destinationService) {
+    public UserMapperService(PasswordService passwordService,
+                             DestinationMapperService destinationMapperService,
+                             DestinationService destinationService) {
         this.passwordService = passwordService;
+        this.destinationMapperService = destinationMapperService;
         this.destinationService = destinationService;
     }
 
@@ -32,6 +39,15 @@ public class UserMapperService {
         user.setPassword(passwordService.getPasswordHash(userMessage.getPassword()));
         user.setEmail(userMessage.getEmail());
         user.setName(userMessage.getName());
+        user.setCarBrand(userMessage.getCarBrand());
+        user.setCarColor(userMessage.getCarColor());
+        user.setCarModel(userMessage.getCarModel());
+        user.setPhoneNumber(userMessage.getPhoneNumber());
+        if (userMessage.getRoles().stream().anyMatch(roleMessage -> roleMessage.getType().equals(RoleType.DRIVER))) {
+            user.setCurrentProfile(Profile.DRIVER);
+        } else {
+            user.setCurrentProfile(Profile.PASSENGER);
+        }
 
         return user;
     }
@@ -44,8 +60,12 @@ public class UserMapperService {
         userMessage.setCurrentProfile(user.getCurrentProfile());
         userMessage.setLat(user.getLat());
         userMessage.setLng(user.getLng());
+        userMessage.setCarBrand(user.getCarBrand());
+        userMessage.setCarColor(user.getCarColor());
+        userMessage.setCarModel(user.getCarModel());
+        userMessage.setPhoneNumber(user.getPhoneNumber());
         if (user.getDestinationId() != null && user.getDestinationId() > 0) {
-            userMessage.setDestination(destinationService.get(user.getDestinationId()));
+            userMessage.setDestination(destinationMapperService.mapDestination(destinationService.get(user.getDestinationId())));
         }
         return userMessage;
     }
