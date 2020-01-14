@@ -3,6 +3,7 @@ package pl.jarosyjarosy.yougetin.user.service;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import pl.jarosyjarosy.yougetin.destination.service.DestinationMapperService;
 import pl.jarosyjarosy.yougetin.destination.service.DestinationService;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.RoleMessage;
 import pl.jarosyjarosy.yougetin.user.endpoint.message.UserMessage;
@@ -20,11 +21,15 @@ import java.util.stream.Collectors;
 @Component
 public class UserMapperService {
     private PasswordService passwordService;
+    private DestinationMapperService destinationMapperService;
     private DestinationService destinationService;
 
     @Autowired
-    public UserMapperService(PasswordService passwordService, DestinationService destinationService) {
+    public UserMapperService(PasswordService passwordService,
+                             DestinationMapperService destinationMapperService,
+                             DestinationService destinationService) {
         this.passwordService = passwordService;
+        this.destinationMapperService = destinationMapperService;
         this.destinationService = destinationService;
     }
 
@@ -60,7 +65,7 @@ public class UserMapperService {
         userMessage.setCarModel(user.getCarModel());
         userMessage.setPhoneNumber(user.getPhoneNumber());
         if (user.getDestinationId() != null && user.getDestinationId() > 0) {
-            userMessage.setDestination(destinationService.get(user.getDestinationId()));
+            userMessage.setDestination(destinationMapperService.mapDestination(destinationService.get(user.getDestinationId())));
         }
         return userMessage;
     }
