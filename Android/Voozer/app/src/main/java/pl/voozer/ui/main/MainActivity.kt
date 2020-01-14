@@ -279,19 +279,29 @@ class MainActivity : BaseActivity<MainController, MainView>(), MainView, OnMapRe
 
         val points = direction.routes[0].legs[0].steps
         routePoints = points.flatMap { PolyUtil.decode(it.polyline.points) }
+        val arrayPoints = points.map { PolyUtil.decode(it.polyline.points) }
+        var pointsCount = ArrayList<Int>()
+        var time = 0.0
+        for (point in arrayPoints) {
+            pointsCount.add(point.count())
+        }
         for (point in routePoints) {
             options.add(point)
         }
-        val route = routePoints.map { Position(lat = it.latitude, lng = it.longitude) }
-        var routePointsTime: ArrayList<PositionWithTime> = ArrayList()
-        points.forEachIndexed { index, steps ->
+        var helpIndex = 0
+        var totalPointsCount = pointsCount[0]
+        val routePointsTime: ArrayList<PositionWithTime> = ArrayList()
+        routePoints.forEachIndexed { index, steps ->
+            if (index > totalPointsCount) {
+                helpIndex++
+                totalPointsCount = pointsCount[helpIndex] + totalPointsCount
+            }
+            time = (points[helpIndex].duration.value / pointsCount[helpIndex]) + time
             routePointsTime.add(
                 PositionWithTime(
-                    lat = route[index].lat,
-                    lng = route[index].lng,
-                    seconds = points.subList(0, index+1).sumBy {
-                        it.duration.value
-                    }.toDouble()
+                    lat = steps.latitude,
+                    lng = steps.longitude,
+                    seconds = time
                 )
             )
         }
