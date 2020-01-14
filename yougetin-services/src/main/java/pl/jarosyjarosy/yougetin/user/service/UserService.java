@@ -225,7 +225,7 @@ public class UserService {
 
     private boolean checkIfPassengerWontBeLate(Double distance, RoutePoint point) {
         Date now = Date.from(clock.instant());
-        Double secondsToWalk =  distance.longValue()/1.1;
+        Double secondsToWalk =  distance.longValue()/1.5;
         Date passengerToBeOnPoint = Date.from(now.toInstant().plusSeconds(secondsToWalk.longValue()));
 
         Date driverToBeOnPoint = Date.from(point.getCreateDate().toInstant().plusSeconds(point.getSeconds()));
@@ -243,10 +243,10 @@ public class UserService {
             for (RoutePoint point : driverRoute) {
                 distanceToCheck = calculateDistanceBetweenTwoPositions(new Position(point.getLat(), point.getLng()), passengerPosition);
                 if (distance > distanceToCheck || distance == -1) {
-//                    if (checkIfPassengerWontBeLate(distanceToCheck, point)) {
+                    //if (checkIfPassengerWontBeLate(distanceToCheck, point)) {
                         distance = distanceToCheck;
                         closestDriverPoint = new Position(point.getLat(), point.getLng());
-//                    }
+                    //}
                 }
             }
 

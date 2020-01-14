@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import pl.jarosyjarosy.yougetin.auth.service.AuthorizationException;
 import pl.jarosyjarosy.yougetin.user.service.MeetingPointNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,5 +28,12 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         logger.warn(e.getMessage());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    @ExceptionHandler(AuthorizationException.class)
+    public ResponseEntity handleAuthorizationException(HttpServletRequest request, MeetingPointNotFoundException e) {
+        logger.warn(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
 }

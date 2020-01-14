@@ -37,6 +37,7 @@ public class UserMapperService {
         user.setCarBrand(userMessage.getCarBrand());
         user.setCarColor(userMessage.getCarColor());
         user.setCarModel(userMessage.getCarModel());
+        user.setPhoneNumber(userMessage.getPhoneNumber());
         if (userMessage.getRoles().stream().anyMatch(roleMessage -> roleMessage.getType().equals(RoleType.DRIVER))) {
             user.setCurrentProfile(Profile.DRIVER);
         } else {
@@ -54,6 +55,10 @@ public class UserMapperService {
         userMessage.setCurrentProfile(user.getCurrentProfile());
         userMessage.setLat(user.getLat());
         userMessage.setLng(user.getLng());
+        userMessage.setCarBrand(user.getCarBrand());
+        userMessage.setCarColor(user.getCarColor());
+        userMessage.setCarModel(user.getCarModel());
+        userMessage.setPhoneNumber(user.getPhoneNumber());
         if (user.getDestinationId() != null && user.getDestinationId() > 0) {
             userMessage.setDestination(destinationService.get(user.getDestinationId()));
         }
